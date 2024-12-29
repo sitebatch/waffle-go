@@ -1,0 +1,22 @@
+FROM --platform=linux/aarch64 ubuntu:24.04 as builder
+
+RUN apt-get update && \
+      apt-get install -y \
+        git \
+        gcc \
+        clang \
+        make \
+        autoconf \
+        libtool
+
+RUN git clone https://github.com/libinjection/libinjection
+
+WORKDIR /libinjection
+
+RUN CFLAGS="-DLIBINJECTION_VERSION=$(date +%Y%m%d%H%M%S)" ./autogen.sh && \
+      ./configure && \
+      make
+
+WORKDIR /build/libinjection
+RUN cp /libinjection/src/libinjection_*.o .
+RUN gcc -dynamiclib -shared -o libinjection.aarch64.so libinjection_sqli.o libinjection_xss.o libinjection_html5.o

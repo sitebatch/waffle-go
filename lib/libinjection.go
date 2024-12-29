@@ -8,9 +8,6 @@ import (
 	"github.com/ebitengine/purego"
 )
 
-//go:embed vendor/libinjection/libinjection.so
-var LibinjectionSharedLib []byte
-
 var (
 	LibinjectionSQLiFunc func(string, int, string) int
 	LibinjectionXSSFunc  func(string, int) int

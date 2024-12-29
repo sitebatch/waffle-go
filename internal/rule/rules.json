@@ -1,0 +1,239 @@
+{
+  "version": "0.1",
+  "rules": [
+    {
+      "id": "attack-attempt-nessus",
+      "name": "attack attempt with Nessus",
+      "tags": ["attack-attempt", "nessus"],
+      "action": "monitor",
+      "conditions": [
+        {
+          "inspector": "regex",
+          "inspect_target": [
+            {
+              "target": "http.request.header",
+              "keys": ["User-Agent"]
+            }
+          ],
+          "regex": "Nessus"
+        }
+      ]
+    },
+    {
+      "id": "attack-attempt-nmap",
+      "name": "attack attempt with Nmap",
+      "tags": ["attack-attempt", "nmap"],
+      "action": "monitor",
+      "conditions": [
+        {
+          "inspector": "regex",
+          "inspect_target": [
+            {
+              "target": "http.request.header",
+              "keys": ["User-Agent"]
+            }
+          ],
+          "regex": "nmap (nse|scripting engine)"
+        }
+      ]
+    },
+    {
+      "id": "attack-attempt-nuclei",
+      "name": "attack attempt with Nuclei",
+      "tags": ["attack-attempt", "nuclei"],
+      "action": "monitor",
+      "conditions": [
+        {
+          "inspector": "regex",
+          "inspect_target": [
+            {
+              "target": "http.request.header",
+              "keys": ["User-Agent"]
+            }
+          ],
+          "regex": "Nuclei"
+        }
+      ]
+    },
+    {
+      "id": "attack-attempt-sqlmap",
+      "name": "attack attempt with SQLMap",
+      "tags": ["attack-attempt", "sqlmap"],
+      "action": "monitor",
+      "conditions": [
+        {
+          "inspector": "regex",
+          "inspect_target": [
+            {
+              "target": "http.request.header",
+              "keys": ["User-Agent"]
+            }
+          ],
+          "regex": "sqlmap/"
+        }
+      ]
+    },
+    {
+      "id": "attemplt-xss",
+      "name": "XSS attempt",
+      "tags": ["xss"],
+      "action": "monitor",
+      "conditions": [
+        {
+          "inspector": "libinjection_xss",
+          "inspect_target": [
+            {
+              "target": "http.request.query"
+            },
+            {
+              "target": "http.request.body"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "attempt-directory-traversal",
+      "name": "attempt directory traversal",
+      "tags": ["directory-traversal"],
+      "action": "monitor",
+      "conditions": [
+        {
+          "inspector": "regex",
+          "inspect_target": [
+            {
+              "target": "http.request.query"
+            },
+            {
+              "target": "http.request.body"
+            },
+            {
+              "target": "http.request.url"
+            }
+          ],
+          "regex": "\\.\\./"
+        }
+      ]
+    },
+    {
+      "id": "attempt-sensitive-file-access",
+      "name": "sensitive file access attempt",
+      "tags": ["sensitive-file-access"],
+      "action": "monitor",
+      "conditions": [
+        {
+          "inspector": "match_list",
+          "inspect_target": [
+            {
+              "target": "http.request.query"
+            },
+            {
+              "target": "http.request.body"
+            },
+            {
+              "target": "http.request.url"
+            }
+          ],
+          "match_list": [
+            "\\.\\./",
+            "/.aws/credentials",
+            "/.git",
+            "/.svn",
+            "/.env",
+            ".ssh/",
+            ".bash_history",
+            "etc/passwd",
+            "etc/shadow",
+            "etc/hosts",
+            "etc/hostname",
+            "etc/nginx/",
+            "etc/httpd/",
+            "etc/apache/",
+            "etc/apache2/",
+            "etc/cron.d",
+            "etc/cron.daily",
+            "etc/cron.hourly",
+            "etc/cron.monthly",
+            "etc/cron.weekly",
+            "etc/crontab",
+            "etc/fstab",
+            "/proc/self",
+            "/proc/cmdline",
+            "/proc/environ",
+            "/root/",
+            "var/log/",
+            "var/www/",
+            "var/run/secrets/"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "attempt-sql-injection-via-http-request",
+      "name": "SQL Injection attempt via HTTP Request",
+      "tags": ["sql-injection"],
+      "action": "monitor",
+      "conditions": [
+        {
+          "inspector": "libinjection_sqli",
+          "inspect_target": [
+            {
+              "target": "http.request.query"
+            },
+            {
+              "target": "http.request.body"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "exploit-sql-injection",
+      "name": "SQL Injection exploit",
+      "tags": ["sql-injection"],
+      "action": "block",
+      "conditions": [
+        {
+          "inspector": "sqli",
+          "inspect_target": [
+            {
+              "target": "sql.query"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sensitive-file-access",
+      "name": "sensitive file access",
+      "tags": ["sensitive-file-access"],
+      "action": "block",
+      "conditions": [
+        {
+          "inspector": "lfi",
+          "inspect_target": [
+            {
+              "target": "os.file.open"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "exploit-ssrf",
+      "name": "SSRF exploit",
+      "tags": ["ssrf"],
+      "action": "block",
+      "conditions": [
+        {
+          "inspector": "ssrf",
+          "inspect_target": [
+            {
+              "target": "http.client.request.url"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

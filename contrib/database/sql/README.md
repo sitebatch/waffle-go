@@ -17,6 +17,20 @@ db, err := waffleSQL.Open("<driver>", "<dataSourceName>")
 _, err := database.QueryContext(ctx, "<query>")
 ```
 
+If you are using a prepared statement, you can assume that SQL injection will not occur, and Waffle does not check for SQL injection.
+
+```go
+import (
+   	waffleSQL "github.com/sitebatch/waffle-go/contrib/database/sql"
+
+	_ "github.com/mattn/go-sqlite3" // or any other database driver
+)
+
+db, err := waffleSQL.Open("<driver>", "<dataSourceName>")
+// Waffle does not check for SQL injection in prepared statements.
+_, err := database.PrepareContext(ctx, "<query>")
+```
+
 # Example
 
 See [example/sql](../../../example/sql/).

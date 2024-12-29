@@ -18,3 +18,11 @@ func TestRegister(t *testing.T) {
 	_, err = sql.Open(driverName, "file:test.db?cache=shared&mode=memory")
 	assert.NoError(t, err)
 }
+
+func TestOpen(t *testing.T) {
+	t.Parallel()
+
+	db, err := waffleSql.Open("sqlite3", "file:test.db?cache=shared&mode=memory")
+	assert.NoError(t, err)
+	assert.NoError(t, db.Ping())
+}

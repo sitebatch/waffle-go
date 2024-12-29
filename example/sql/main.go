@@ -92,12 +92,7 @@ func insecureLogin(ctx context.Context, email, password string) error {
 }
 
 func setupDB() {
-	driverName, err := waffleSQL.Register("sqlite3")
-	if err != nil {
-		panic(err)
-	}
-
-	db, err := sql.Open(driverName, "file::memory:?cache=shared")
+	db, err := waffleSQL.Open("sqlite3", "file::memory:?cache=shared")
 	if err != nil {
 		panic(err)
 	}

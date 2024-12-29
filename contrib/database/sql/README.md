@@ -4,7 +4,7 @@ This package provides a wrapper for [`database/sql`](https://pkg.go.dev/database
 
 # Usage
 
-to english: When executing a statement, use the Waffle database driver instead of `database/sql`. At this time, you need to pass the Waffle's operation `context`.
+When executing a statement, use the Waffle database driver instead of `database/sql`. At this time, you need to pass the Waffle's operation `context`.
 
 ```go
 import (

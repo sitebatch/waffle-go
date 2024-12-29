@@ -9,5 +9,5 @@ This project is currently under development.
 
 ## Getting Started
 
-You can find a getting started guide on [waffle website]().
+You can find a getting started guide on [waffle website](https://sitebatch.github.io/waffle-website/).
 

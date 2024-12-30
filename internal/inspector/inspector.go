@@ -10,6 +10,7 @@ var (
 	SQLiInspectorName             InspectorName = "SQLiInspector"
 	LFIInspectorName              InspectorName = "LFIInspector"
 	SSRFInspectorName             InspectorName = "SSRFInspector"
+	AccountTakeoverInspectorName  InspectorName = "AccountTakeoverInspector"
 )
 
 func NewInspector() map[string]Inspector {
@@ -21,6 +22,7 @@ func NewInspector() map[string]Inspector {
 		string("sqli"):              NewSQLiInspector(),
 		string("lfi"):               NewLFIInspector(),
 		string("ssrf"):              NewSSRFInspector(),
+		string("account_takeover"):  NewAccountTakeoverInspector(),
 	}
 }
 

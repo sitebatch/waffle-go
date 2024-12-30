@@ -2,6 +2,7 @@ package waffle
 
 import (
 	"github.com/sitebatch/waffle-go/internal/listener"
+	"github.com/sitebatch/waffle-go/internal/listener/account_takeover"
 	"github.com/sitebatch/waffle-go/internal/listener/http"
 	"github.com/sitebatch/waffle-go/internal/listener/os"
 	"github.com/sitebatch/waffle-go/internal/listener/sql"
@@ -27,6 +28,7 @@ var listeners = []listener.NewListener{
 	http.NewHTTPClientSecurity,
 	sql.NewSQLSecurity,
 	os.NewFileSecurity,
+	account_takeover.NewAccountTakeoverSecurity,
 }
 
 func (w *Waffle) start() error {

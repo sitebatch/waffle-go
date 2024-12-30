@@ -19,6 +19,8 @@ const (
 
 	InspectTargetSQLQuery   InspectTarget = "sql.query"
 	InspectTargetOSFileOpen InspectTarget = "os.file.open"
+
+	InspectTargetAccountTakeover InspectTarget = "application.user.login.account_takeover"
 )
 
 func (t InspectTarget) String() string {
@@ -87,6 +89,14 @@ func (b *InspectDataBuilder) WithSQLQuery(query string) *InspectDataBuilder {
 
 func (b *InspectDataBuilder) WithFileOpenPath(path string) *InspectDataBuilder {
 	b.Target[InspectTargetOSFileOpen] = NewInspectTargetValueString(path)
+	return b
+}
+
+func (b *InspectDataBuilder) WithAccountTakeover(clientIP, userID string) *InspectDataBuilder {
+	b.Target[InspectTargetAccountTakeover] = NewInspectTargetValueKeyValues(map[string][]string{
+		"client_ip": {clientIP},
+		"user_id":   {userID},
+	})
 	return b
 }
 

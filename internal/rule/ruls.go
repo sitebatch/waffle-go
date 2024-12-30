@@ -37,6 +37,8 @@ type Condition struct {
 
 	Regex     string   `json:"regex,omitempty"`
 	MatchList []string `json:"match_list,omitempty"`
+
+	Threshold float64 `json:"threshold,omitempty"`
 }
 
 func LoadDefaultRules() error {

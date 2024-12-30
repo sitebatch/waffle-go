@@ -234,6 +234,23 @@
           ]
         }
       ]
+    },
+    {
+      "id": "attempt-account-takeover",
+      "name": "account takeover attempt",
+      "tags": ["account-takeover"],
+      "action": "block",
+      "conditions": [
+        {
+          "inspector": "account_takeover",
+          "inspect_target": [
+            {
+              "target": "application.user.login.account_takeover"
+            }
+          ],
+          "threshold": 100
+        }
+      ]
     }
   ]
 }

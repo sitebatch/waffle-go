@@ -8,6 +8,7 @@ import (
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/log"
 	"github.com/sitebatch/waffle-go/internal/rule"
+	"golang.org/x/time/rate"
 )
 
 type detectionResult struct {
@@ -171,6 +172,11 @@ func (w *waf) doInspect(i inspector.Inspector, data inspector.InspectData, condi
 
 	case inspector.SSRFInspectorName:
 		return i.Inspect(data, &inspector.SSRFInspectorArgs{})
+
+	case inspector.AccountTakeoverInspectorName:
+		return i.Inspect(data, &inspector.AccountTakeoverInspectorArgs{
+			LoginRateLimitPerSecond: rate.Limit(condition.Threshold),
+		})
 
 	default:
 		log.Warn("Unknown inspector", "name", i.Name())

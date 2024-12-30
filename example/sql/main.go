@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sitebatch/waffle-go"
+	"github.com/sitebatch/waffle-go/contrib/application"
 	waffleSQL "github.com/sitebatch/waffle-go/contrib/database/sql"
 	ginWaf "github.com/sitebatch/waffle-go/contrib/gin-gonic/gin"
 )
@@ -40,6 +41,13 @@ func main() {
 func loginController(c *gin.Context) {
 	email := c.PostForm("email")
 	password := c.PostForm("password")
+
+	if err := application.ProtectAccountTakeover(c.Request.Context(), c.ClientIP(), email); err != nil {
+		c.JSON(429, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	err := login(c.Request.Context(), email, password)
 	if err != nil {

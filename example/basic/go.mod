@@ -14,4 +14,5 @@ require (
 	github.com/wasilibs/wazero-helpers v0.0.0-20240620070341-3dff1577cd52 // indirect
 	github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2 // indirect
 	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/time v0.8.0 // indirect
 )

@@ -2,9 +2,9 @@
   "version": "0.1",
   "rules": [
     {
-      "id": "attack-attempt-nessus",
-      "name": "attack attempt with Nessus",
-      "tags": ["attack-attempt", "nessus"],
+      "id": "security-scanner-detected-nessus",
+      "name": "Detects a known security scanner Nessus",
+      "tags": ["security scanner", "nessus", "enumeration"],
       "action": "monitor",
       "conditions": [
         {
@@ -20,9 +20,9 @@
       ]
     },
     {
-      "id": "attack-attempt-nmap",
-      "name": "attack attempt with Nmap",
-      "tags": ["attack-attempt", "nmap"],
+      "id": "security-scanner-detected-nmap",
+      "name": "Detects a known security scanner Nmap",
+      "tags": ["security scanner", "nmap", "enumeration"],
       "action": "monitor",
       "conditions": [
         {
@@ -38,9 +38,9 @@
       ]
     },
     {
-      "id": "attack-attempt-nuclei",
-      "name": "attack attempt with Nuclei",
-      "tags": ["attack-attempt", "nuclei"],
+      "id": "security-scanner-detected-nuclei",
+      "name": "Detects a known security scanner Nuclei",
+      "tags": ["security scanner", "nuclei", "enumeration"],
       "action": "monitor",
       "conditions": [
         {
@@ -56,9 +56,9 @@
       ]
     },
     {
-      "id": "attack-attempt-sqlmap",
-      "name": "attack attempt with SQLMap",
-      "tags": ["attack-attempt", "sqlmap"],
+      "id": "security-scanner-detected-sqlmap",
+      "name": "Detects a known security scanner sqlmap",
+      "tags": ["security scanner", "sqlmap", "enumeration"],
       "action": "monitor",
       "conditions": [
         {
@@ -74,9 +74,9 @@
       ]
     },
     {
-      "id": "attemplt-xss",
-      "name": "XSS attempt",
-      "tags": ["xss"],
+      "id": "xss-attempts",
+      "name": "XSS attempts",
+      "tags": ["xss", "attack attempts"],
       "action": "monitor",
       "conditions": [
         {
@@ -93,9 +93,9 @@
       ]
     },
     {
-      "id": "attempt-directory-traversal",
-      "name": "attempt directory traversal",
-      "tags": ["directory-traversal"],
+      "id": "directory-traversal-attempts",
+      "name": "Directory Traversal attempts",
+      "tags": ["directory-traversal", "attack attempts"],
       "action": "monitor",
       "conditions": [
         {
@@ -116,9 +116,9 @@
       ]
     },
     {
-      "id": "attempt-sensitive-file-access",
-      "name": "sensitive file access attempt",
-      "tags": ["sensitive-file-access"],
+      "id": "enumerate-sensitive-file",
+      "name": "Sensitive file enumeration",
+      "tags": ["enumeration", "sensitive files"],
       "action": "monitor",
       "conditions": [
         {
@@ -135,7 +135,6 @@
             }
           ],
           "match_list": [
-            "\\.\\./",
             "/.aws/credentials",
             "/.git",
             "/.svn",
@@ -169,9 +168,9 @@
       ]
     },
     {
-      "id": "attempt-sql-injection-via-http-request",
-      "name": "SQL Injection attempt via HTTP Request",
-      "tags": ["sql-injection"],
+      "id": "sql-injection-attempts",
+      "name": "SQL Injection attempts",
+      "tags": ["sql injection", "attack attempts"],
       "action": "monitor",
       "conditions": [
         {
@@ -188,9 +187,9 @@
       ]
     },
     {
-      "id": "exploit-sql-injection",
-      "name": "SQL Injection exploit",
-      "tags": ["sql-injection"],
+      "id": "sql-injection-exploited",
+      "name": "SQL Injection exploited",
+      "tags": ["sql injection", "exploited"],
       "action": "block",
       "conditions": [
         {
@@ -204,9 +203,9 @@
       ]
     },
     {
-      "id": "sensitive-file-access",
-      "name": "sensitive file access",
-      "tags": ["sensitive-file-access"],
+      "id": "sensitive-file-opened",
+      "name": "Sensitive file opened",
+      "tags": ["sensitive files", "exploited"],
       "action": "block",
       "conditions": [
         {
@@ -220,9 +219,9 @@
       ]
     },
     {
-      "id": "exploit-ssrf",
-      "name": "SSRF exploit",
-      "tags": ["ssrf"],
+      "id": "ssrf-exploited",
+      "name": "SSRF exploited",
+      "tags": ["ssrf", "exploited"],
       "action": "block",
       "conditions": [
         {
@@ -236,9 +235,9 @@
       ]
     },
     {
-      "id": "attempt-account-takeover",
-      "name": "account takeover attempt",
-      "tags": ["account-takeover"],
+      "id": "account-takeover-detected",
+      "name": "Account Takeover detected",
+      "tags": ["account takeover", "attack attempts"],
       "action": "block",
       "conditions": [
         {

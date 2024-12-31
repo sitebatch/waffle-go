@@ -1,4 +1,4 @@
-module github.com/sitebatch/waffle-go/example/basic
+module github.com/sitebatch/waffle-go/example/override-rules
 
 go 1.23.4
 

@@ -12,7 +12,8 @@ import (
 )
 
 type Config struct {
-	Debug bool
+	Debug             bool
+	OverrideRulesJSON []byte
 }
 
 func defaultConfig() *Config {
@@ -20,7 +21,8 @@ func defaultConfig() *Config {
 }
 
 type Waffle struct {
-	listeners []listener.Listener
+	listeners         []listener.Listener
+	overrideRulesJSON []byte
 }
 
 var listeners = []listener.NewListener{
@@ -32,9 +34,14 @@ var listeners = []listener.NewListener{
 }
 
 func (w *Waffle) start() error {
-	err := rule.LoadDefaultRules()
-	if err != nil {
-		return err
+	if len(w.overrideRulesJSON) > 0 {
+		if err := rule.LoadRules(w.overrideRulesJSON); err != nil {
+			return err
+		}
+	} else {
+		if err := rule.LoadDefaultRules(); err != nil {
+			return err
+		}
 	}
 
 	rootOp := operation.NewRootOperation()
@@ -65,13 +72,21 @@ func WithDebug() Options {
 	}
 }
 
+func WithOverrideRules(ruleJSON []byte) Options {
+	return func(c *Config) {
+		c.OverrideRulesJSON = ruleJSON
+	}
+}
+
 func Start(opts ...Options) {
 	c := defaultConfig()
 	for _, opt := range opts {
 		opt(c)
 	}
 
-	w := &Waffle{}
+	w := &Waffle{
+		overrideRulesJSON: c.OverrideRulesJSON,
+	}
 	err := w.start()
 	if err != nil {
 		log.Error("Failed to start waffle: %v", err)

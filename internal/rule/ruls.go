@@ -41,6 +41,18 @@ type Condition struct {
 	Threshold float64 `json:"threshold,omitempty"`
 }
 
+func LoadRules(rulesJSON []byte) error {
+	if err := json.Unmarshal(rulesJSON, &LoadedRule); err != nil {
+		return err
+	}
+
+	if err := LoadedRule.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func LoadDefaultRules() error {
 	if err := json.Unmarshal(rulesJSON, &LoadedRule); err != nil {
 		return err

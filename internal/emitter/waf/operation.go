@@ -71,13 +71,7 @@ func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.Ins
 		var blockError *action.BlockError
 		if errors.As(err, &blockError) {
 			wafOp.blockErr = blockError
-			log.Info(
-				fmt.Sprintf("Threat blocked: %s", blockError.Error()),
-				"ruleID", blockError.RuleID,
-				"inspector", blockError.Inspector,
-				"clientIP", wafOp.wafOperationContext.ClientIP,
-				"url", wafOp.wafOperationContext.URL,
-			)
+			wafOp.log("block", fmt.Sprintf("Threat blocked: %s", blockError.Error()), blockError.RuleID, blockError.Inspector)
 			return
 		}
 
@@ -86,14 +80,7 @@ func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.Ins
 
 	for ruleID, event := range wafOp.Waf.GetDetectionEvents() {
 		for inspector, result := range event {
-			log.Info(
-				"Threat detected",
-				"ruleID", ruleID,
-				"inspector", inspector,
-				"reason", result.reason,
-				"clientIP", wafOp.wafOperationContext.ClientIP,
-				"url", wafOp.wafOperationContext.URL,
-			)
+			wafOp.log("detect", fmt.Sprintf("Threat detected: %s", result.reason.Error()), ruleID, inspector)
 		}
 	}
 }
@@ -107,4 +94,23 @@ func (wafOp *WafOperation) IsBlock() bool {
 func (wafOp *WafOperation) FinishInspect(res *WafOperationResult) {
 	res.BlockErr = wafOp.blockErr
 	res.DetectionEvents = wafOp.Waf.GetDetectionEvents()
+}
+
+func (wafOp *WafOperation) log(action string, msg string, ruleID string, inspector string) {
+	var clientIP string
+	var url string
+
+	if wafOp.wafOperationContext != nil {
+		clientIP = wafOp.wafOperationContext.ClientIP
+		url = wafOp.wafOperationContext.URL
+	}
+
+	switch action {
+	case "block":
+		log.Info(msg, "ruleID", ruleID, "inspector", inspector, "clientIP", clientIP, "url", url)
+	case "detect":
+		log.Info(msg, "ruleID", ruleID, "inspector", inspector, "clientIP", clientIP, "url", url)
+	default:
+		log.Error("unknown action", "action", action)
+	}
 }

@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/sitebatch/waffle-go/internal/emitter/http/parser"
@@ -34,7 +35,10 @@ func (*HTTPRequestHandlerOperationResult) IsResultOf(*HTTPRequestHandlerOperatio
 func StartHTTPRequestHandlerOperation(ctx context.Context, args HTTPRequestHandlerOperationArg) (*HTTPRequestHandlerOperation, context.Context) {
 	wafOp, found := operation.FindOperation[waf.WafOperation](ctx)
 	if !found {
-		wafOp, ctx = waf.StartWafOperation(ctx)
+		wafOp, ctx = waf.StartWafOperation(ctx, waf.WithOperationContext(waf.WafOperationContext{
+			URL:      args.URL,
+			ClientIP: args.ClientIP,
+		}))
 	}
 
 	op := &HTTPRequestHandlerOperation{
@@ -56,11 +60,20 @@ func buildHttpRequestHandlerOperationArg(r *http.Request) HTTPRequestHandlerOper
 		body = map[string][]string{}
 	}
 	return HTTPRequestHandlerOperationArg{
-		URL:         r.URL.String(),
+		URL:         fullURL(r),
 		Path:        r.URL.Path,
 		Headers:     r.Header,
 		QueryValues: r.URL.Query(),
 		Body:        body,
 		ClientIP:    r.RemoteAddr,
 	}
+}
+
+func fullURL(r *http.Request) string {
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+
+	return fmt.Sprintf("%s://%s%s?%s#%s", scheme, r.Host, r.URL.Path, r.URL.RawQuery, r.URL.Fragment)
 }

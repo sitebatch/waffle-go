@@ -17,13 +17,19 @@ type WafOperation struct {
 	operation.Operation
 	Waf WAF
 
-	blockErr *action.BlockError
+	wafOperationContext *WafOperationContext
+	blockErr            *action.BlockError
 }
 
 type WafOperationArg struct{}
 type WafOperationResult struct {
 	BlockErr        *action.BlockError
 	DetectionEvents DetectionEvents
+}
+
+type WafOperationContext struct {
+	URL      string
+	ClientIP string
 }
 
 func (WafOperationArg) IsArgOf(*WafOperation)       {}
@@ -33,14 +39,26 @@ func (r *WafOperationResult) IsBlock() bool {
 	return r.BlockErr != nil
 }
 
+type Option func(*WafOperation)
+
+func WithOperationContext(w WafOperationContext) Option {
+	return func(o *WafOperation) {
+		o.wafOperationContext = &w
+	}
+}
+
 // StartWafOperation creates a new WafOperation and returns it with the context.
 // This operation should be created at the top level of processing HTTP requests and propagated to subsequent processing.
-func StartWafOperation(ctx context.Context) (*WafOperation, context.Context) {
+func StartWafOperation(ctx context.Context, opts ...Option) (*WafOperation, context.Context) {
 	parent, _ := operation.FindOperationFromContext(ctx)
 
 	op := &WafOperation{
 		Operation: operation.NewOperation(parent),
 		Waf:       NewWAF(rule.LoadedRule),
+	}
+
+	for _, opt := range opts {
+		opt(op)
 	}
 
 	return op, operation.StartAndRegisterOperation(ctx, op, WafOperationArg{})
@@ -53,7 +71,13 @@ func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.Ins
 		var blockError *action.BlockError
 		if errors.As(err, &blockError) {
 			wafOp.blockErr = blockError
-			log.Info(fmt.Sprintf("Threat blocked: %s", blockError.Error()), "ruleID", blockError.RuleID, "inspector", blockError.Inspector)
+			log.Info(
+				fmt.Sprintf("Threat blocked: %s", blockError.Error()),
+				"ruleID", blockError.RuleID,
+				"inspector", blockError.Inspector,
+				"clientIP", wafOp.wafOperationContext.ClientIP,
+				"url", wafOp.wafOperationContext.URL,
+			)
 			return
 		}
 
@@ -62,7 +86,14 @@ func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.Ins
 
 	for ruleID, event := range wafOp.Waf.GetDetectionEvents() {
 		for inspector, result := range event {
-			log.Info("Threat detected", "ruleID", ruleID, "inspector", inspector, "reason", result.reason)
+			log.Info(
+				"Threat detected",
+				"ruleID", ruleID,
+				"inspector", inspector,
+				"reason", result.reason,
+				"clientIP", wafOp.wafOperationContext.ClientIP,
+				"url", wafOp.wafOperationContext.URL,
+			)
 		}
 	}
 }

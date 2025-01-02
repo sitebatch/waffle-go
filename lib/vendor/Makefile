@@ -5,3 +5,6 @@ build/linux/amd64:
 build/linux/aarch64:
 	$(shell docker build -t libinjection-build-linux-aarch64 -f Dockerfile.linux_aarch64 .)
 	$(shell docker run --rm -v $(PWD)/libinjection:/work libinjection-build-linux-aarch64 cp libinjection.aarch64.so /work/linux_aarch64/libinjection.so)
+
+copy:
+	$(shell cp -a libinjection ../)

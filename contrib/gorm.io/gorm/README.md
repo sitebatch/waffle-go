@@ -14,4 +14,7 @@ import (
 
 _, err := waffleSql.Register(sqlite.DriverName)
 sqlDB, err := waffleSql.Open(sqlite.DriverName, dsn)
+db, err := gorm.Open(sqlite.New(sqlite.Config{Conn: sqlDB}), &gorm.Config{})
+
+result := db.WithContext(ctx).Where(fmt.Sprintf("code = '%s'", "D42') OR 1=1--")).First(&product)
 ```

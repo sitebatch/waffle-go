@@ -5,5 +5,5 @@ package lib
 
 import _ "embed"
 
-//go:embed vendor/libinjection/darwin_aarch64/libinjection.so
+//go:embed libinjection/darwin_aarch64/libinjection.so
 var LibinjectionSharedLib []byte

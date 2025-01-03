@@ -50,6 +50,10 @@ func WithOperationContext(w WafOperationContext) Option {
 // StartWafOperation creates a new WafOperation and returns it with the context.
 // This operation should be created at the top level of processing HTTP requests and propagated to subsequent processing.
 func StartWafOperation(ctx context.Context, opts ...Option) (*WafOperation, context.Context) {
+	if !operation.IsRootOperationInitialized() {
+		panic("waffle is not initialized, forgot to call waffle.Start()?")
+	}
+
 	parent, _ := operation.FindOperationFromContext(ctx)
 
 	op := &WafOperation{

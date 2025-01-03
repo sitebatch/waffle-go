@@ -19,6 +19,8 @@ import (
 // This operation has all event handlers registered and events are notified.
 var rootOperation Operation
 
+var rootOperationInitialized bool
+
 // Operation is the interface that wraps the basic operation methods.
 // An operation is a unit of application process (e.g. HTTP Request handling, Execute SQL Query, etc...) that can be started and finished.
 // When an operation is started or finished, events are notified to event listeners.
@@ -79,6 +81,11 @@ func NewRootOperation() Operation {
 // The root operation should be passed to op created by NewRootOperation.
 func InitRootOperation(op Operation) {
 	rootOperation = op
+	rootOperationInitialized = true
+}
+
+func IsRootOperationInitialized() bool {
+	return rootOperationInitialized
 }
 
 // NewOperation creates a new operation.

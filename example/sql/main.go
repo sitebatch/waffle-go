@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sitebatch/waffle-go"
+	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/contrib/application"
 	waffleSQL "github.com/sitebatch/waffle-go/contrib/database/sql"
 	ginWaf "github.com/sitebatch/waffle-go/contrib/gin-gonic/gin"
@@ -43,6 +45,11 @@ func loginController(c *gin.Context) {
 	password := c.PostForm("password")
 
 	if err := application.ProtectAccountTakeover(c.Request.Context(), c.ClientIP(), email); err != nil {
+		var actionErr *action.BlockError
+		if errors.As(err, &actionErr) {
+			return
+		}
+
 		c.JSON(429, gin.H{
 			"error": err.Error(),
 		})
@@ -68,6 +75,11 @@ func insecureLoginController(c *gin.Context) {
 
 	err := insecureLogin(c.Request.Context(), email, password)
 	if err != nil {
+		var actionErr *action.BlockError
+		if errors.As(err, &actionErr) {
+			return
+		}
+
 		c.JSON(400, gin.H{
 			"error": err.Error(),
 		})

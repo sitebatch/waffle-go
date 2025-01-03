@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/sitebatch/waffle-go"
+	"github.com/sitebatch/waffle-go/action"
 	waffleHttp "github.com/sitebatch/waffle-go/contrib/net/http"
 	waffleOs "github.com/sitebatch/waffle-go/contrib/os"
 )
@@ -27,6 +29,11 @@ func readFile(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("file")
 
 	if _, err := waffleOs.ProtectReadFile(r.Context(), path); err != nil {
+		var actionErr *action.BlockError
+		if errors.As(err, &actionErr) {
+			return
+		}
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

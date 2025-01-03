@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/sitebatch/waffle-go"
+	"github.com/sitebatch/waffle-go/action"
 	waffleSql "github.com/sitebatch/waffle-go/contrib/database/sql"
-	"github.com/sitebatch/waffle-go/internal/action"
 	"github.com/sitebatch/waffle-go/internal/emitter/http"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

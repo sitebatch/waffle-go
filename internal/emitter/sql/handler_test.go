@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/sitebatch/waffle-go"
-	"github.com/sitebatch/waffle-go/internal/action"
+	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/emitter/http"
 	"github.com/sitebatch/waffle-go/internal/emitter/sql"
 	"github.com/stretchr/testify/assert"

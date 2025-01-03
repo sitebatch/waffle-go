@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/sitebatch/waffle-go"
+	"github.com/sitebatch/waffle-go/action"
 	waffleHttp "github.com/sitebatch/waffle-go/contrib/net/http"
 	waffleOs "github.com/sitebatch/waffle-go/contrib/os"
-	"github.com/sitebatch/waffle-go/internal/action"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

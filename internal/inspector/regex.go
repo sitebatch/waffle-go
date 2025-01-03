@@ -5,7 +5,7 @@ import (
 
 	regexp "github.com/wasilibs/go-re2"
 
-	"github.com/sitebatch/waffle-go/internal/action"
+	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/log"
 )
 

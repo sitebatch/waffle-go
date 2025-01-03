@@ -1,7 +1,7 @@
 package inspector
 
 import (
-	"github.com/sitebatch/waffle-go/internal/action"
+	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector/account_takeover"
 	"golang.org/x/time/rate"
 )

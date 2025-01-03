@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/sitebatch/waffle-go"
+	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/contrib/net/http"
-	"github.com/sitebatch/waffle-go/internal/action"
 	emitterHttp "github.com/sitebatch/waffle-go/internal/emitter/http"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

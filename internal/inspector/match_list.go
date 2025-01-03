@@ -3,7 +3,7 @@ package inspector
 import (
 	"fmt"
 
-	"github.com/sitebatch/waffle-go/internal/action"
+	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/log"
 	regexp "github.com/wasilibs/go-re2"
 )

@@ -1,6 +1,7 @@
 package waffle
 
 import (
+	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/listener"
 	"github.com/sitebatch/waffle-go/internal/listener/account_takeover"
 	"github.com/sitebatch/waffle-go/internal/listener/http"
@@ -75,6 +76,17 @@ func WithDebug() Options {
 func WithOverrideRules(ruleJSON []byte) Options {
 	return func(c *Config) {
 		c.OverrideRulesJSON = ruleJSON
+	}
+}
+
+func WithCustomBlockedResponse(responseBodyHTML []byte, responseBodyJSON []byte) Options {
+	return func(c *Config) {
+		if len(responseBodyHTML) != 0 {
+			action.RegisterBlockResponseTemplateHTML(responseBodyHTML)
+		}
+		if len(responseBodyJSON) != 0 {
+			action.RegisterBlockResponseTemplateJSON(responseBodyJSON)
+		}
 	}
 }
 

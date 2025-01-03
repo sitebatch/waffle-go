@@ -2,16 +2,12 @@ package http
 
 import (
 	"net/http"
+
+	"github.com/sitebatch/waffle-go/action"
 )
 
 type Options struct {
 	OnBlockFunc func()
-}
-
-func BlockHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusForbidden)
-	})
 }
 
 func handle(w http.ResponseWriter, r *http.Request, options Options) (http.ResponseWriter, *http.Request, bool, func()) {
@@ -25,7 +21,7 @@ func handle(w http.ResponseWriter, r *http.Request, options Options) (http.Respo
 
 		if result.BlockErr != nil {
 			blocked = true
-			BlockHandler().ServeHTTP(w, tr)
+			action.BlockResponseHandler().ServeHTTP(w, tr)
 			if options.OnBlockFunc != nil {
 				options.OnBlockFunc()
 			}
@@ -34,7 +30,7 @@ func handle(w http.ResponseWriter, r *http.Request, options Options) (http.Respo
 
 	if op.IsBlock() {
 		blocked = true
-		BlockHandler().ServeHTTP(w, tr)
+		action.BlockResponseHandler().ServeHTTP(w, tr)
 	}
 
 	return w, tr, blocked, afterHandler

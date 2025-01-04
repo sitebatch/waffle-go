@@ -15,6 +15,10 @@ const (
 	InspectTargetHttpRequestBody   InspectTarget = "http.request.body"
 	InspectTargetClientIP          InspectTarget = "client.ip"
 
+	InspectTargetGraphQLRequestRawQuery      InspectTarget = "graphql.request.raw_query"
+	InspectTargetGraphQLRequestOperationName InspectTarget = "graphql.request.operation_name"
+	InspectTargetGraphQLRequestVariables     InspectTarget = "graphql.request.variables"
+
 	InspectTargetHttpClientRequestURL InspectTarget = "http.client.request.url"
 
 	InspectTargetSQLQuery   InspectTarget = "sql.query"
@@ -79,6 +83,21 @@ func (b *InspectDataBuilder) WithClientIP(clientIP string) *InspectDataBuilder {
 
 func (b *InspectDataBuilder) WithHTTPClientRequestURL(url string) *InspectDataBuilder {
 	b.Target[InspectTargetHttpClientRequestURL] = NewInspectTargetValueString(url)
+	return b
+}
+
+func (b *InspectDataBuilder) WithGraphQLRequestRawQuery(query string) *InspectDataBuilder {
+	b.Target[InspectTargetGraphQLRequestRawQuery] = NewInspectTargetValueString(query)
+	return b
+}
+
+func (b *InspectDataBuilder) WithGraphQLRequestOperationName(operationName string) *InspectDataBuilder {
+	b.Target[InspectTargetGraphQLRequestOperationName] = NewInspectTargetValueString(operationName)
+	return b
+}
+
+func (b *InspectDataBuilder) WithGraphQLRequestVariables(variables map[string][]string) *InspectDataBuilder {
+	b.Target[InspectTargetGraphQLRequestVariables] = NewInspectTargetValueKeyValues(variables)
 	return b
 }
 

@@ -87,6 +87,9 @@
             },
             {
               "target": "http.request.body"
+            },
+            {
+              "target": "graphql.request.variables"
             }
           ]
         }

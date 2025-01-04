@@ -4,6 +4,7 @@ import (
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/listener"
 	"github.com/sitebatch/waffle-go/internal/listener/account_takeover"
+	"github.com/sitebatch/waffle-go/internal/listener/graphql"
 	"github.com/sitebatch/waffle-go/internal/listener/http"
 	"github.com/sitebatch/waffle-go/internal/listener/os"
 	"github.com/sitebatch/waffle-go/internal/listener/sql"
@@ -29,6 +30,7 @@ type Waffle struct {
 var listeners = []listener.NewListener{
 	http.NewHTTPSecurity,
 	http.NewHTTPClientSecurity,
+	graphql.NewGraphqlSecurity,
 	sql.NewSQLSecurity,
 	os.NewFileSecurity,
 	account_takeover.NewAccountTakeoverSecurity,
@@ -39,6 +41,7 @@ func (w *Waffle) start() error {
 		if err := rule.LoadRules(w.overrideRulesJSON); err != nil {
 			return err
 		}
+		log.Info("waffle: loaded custom rules")
 	} else {
 		if err := rule.LoadDefaultRules(); err != nil {
 			return err

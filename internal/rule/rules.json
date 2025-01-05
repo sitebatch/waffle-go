@@ -112,6 +112,9 @@
             },
             {
               "target": "http.request.url"
+            },
+            {
+              "target": "graphql.request.variables"
             }
           ],
           "regex": "\\.\\./"
@@ -135,6 +138,9 @@
             },
             {
               "target": "http.request.url"
+            },
+            {
+              "target": "graphql.request.variables"
             }
           ],
           "match_list": [
@@ -184,6 +190,9 @@
             },
             {
               "target": "http.request.body"
+            },
+            {
+              "target": "graphql.request.variables"
             }
           ]
         }

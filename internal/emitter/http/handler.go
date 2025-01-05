@@ -23,9 +23,7 @@ func handle(w http.ResponseWriter, r *http.Request, options Options) (http.Respo
 
 		if result.BlockErr != nil {
 			blocked = true
-			if waffleResponseWriter.BodyWritten() {
-				log.Warn("response body is already written, will not respond with block page")
-			} else {
+			if !waffleResponseWriter.BodyWritten() {
 				action.BlockResponseHandler().ServeHTTP(ww, rr)
 				if options.OnBlockFunc != nil {
 					options.OnBlockFunc()

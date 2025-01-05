@@ -1,6 +1,7 @@
 package http_test
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +9,9 @@ import (
 
 	"github.com/sitebatch/waffle-go"
 	httpHandler "github.com/sitebatch/waffle-go/internal/emitter/http"
+	"github.com/sitebatch/waffle-go/internal/emitter/os"
+	"github.com/sitebatch/waffle-go/internal/emitter/waf"
+	"github.com/sitebatch/waffle-go/internal/operation"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -33,17 +37,23 @@ func TestWrapHandler(t *testing.T) {
 			expectedCode:       http.StatusForbidden,
 			expectResponseBody: "<title>Access Denied</title>",
 		},
-		/*
-			"blocked request, but body is already written": {
-				req:        mustNewRequest(t, http.MethodGet, "/", nil),
-				waffleRule: blockRuleHttpRequest,
-				fn: func(w http.ResponseWriter, r *http.Request) {
-					w.Write([]byte("Hello"))
-				},
-				expectedCode:       http.StatusForbidden,
-				expectResponseBody: "<title>Access Denied</title>",
+		"If the operation is blocked by subsequent processing of the middleware": {
+			req: mustNewRequest(t, http.MethodGet, "/", nil),
+			fn: func(w http.ResponseWriter, r *http.Request) {
+				blockOperation(t, r.Context())
 			},
-		*/
+			expectedCode:       http.StatusForbidden,
+			expectResponseBody: "<title>Access Denied</title>",
+		},
+		"If there is already a write to the response, the blocked response will not be returned": {
+			req: mustNewRequest(t, http.MethodGet, "/", nil),
+			fn: func(w http.ResponseWriter, r *http.Request) {
+				blockOperation(t, r.Context())
+				w.Write([]byte("some errors"))
+			},
+			expectedCode:       http.StatusOK,
+			expectResponseBody: "some errors",
+		},
 	}
 
 	for name, tt := range testCases {
@@ -106,3 +116,23 @@ var blockRuleHttpRequest = []byte(`
     	}
 	]
 }`)
+
+func blockOperation(t *testing.T, ctx context.Context) {
+	t.Helper()
+
+	parent, _ := operation.FindOperationFromContext(ctx)
+	var wafop *waf.WafOperation
+	if parentOp, ok := parent.(*httpHandler.HTTPRequestHandlerOperation); ok {
+		wafop = parentOp.WafOperation
+	}
+	require.NotNil(t, wafop)
+
+	op := &os.FileOperation{
+		Operation:    operation.NewOperation(parent),
+		WafOperation: wafop,
+	}
+	operation.StartOperation(op, os.FileOperationArg{Path: "/etc/passwd"})
+
+	res := &os.FileOperationResult{}
+	operation.FinishOperation(op, res)
+}

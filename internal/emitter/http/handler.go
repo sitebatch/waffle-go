@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/sitebatch/waffle-go/action"
+	"github.com/sitebatch/waffle-go/internal/log"
 )
 
 type Options struct {
@@ -11,8 +12,9 @@ type Options struct {
 }
 
 func handle(w http.ResponseWriter, r *http.Request, options Options) (http.ResponseWriter, *http.Request, bool, func()) {
+	ww, waffleResponseWriter := action.NewWaffleResponseWriter(w)
 	op, ctx := StartHTTPRequestHandlerOperation(r.Context(), buildHttpRequestHandlerOperationArg(r))
-	tr := r.WithContext(ctx)
+	rr := r.WithContext(ctx)
 
 	blocked := false
 	afterHandler := func() {
@@ -21,19 +23,25 @@ func handle(w http.ResponseWriter, r *http.Request, options Options) (http.Respo
 
 		if result.BlockErr != nil {
 			blocked = true
-			action.BlockResponseHandler().ServeHTTP(w, tr)
-			if options.OnBlockFunc != nil {
-				options.OnBlockFunc()
+			if !waffleResponseWriter.BodyWritten() {
+				action.BlockResponseHandler().ServeHTTP(ww, rr)
+				if options.OnBlockFunc != nil {
+					options.OnBlockFunc()
+				}
 			}
 		}
 	}
 
 	if op.IsBlock() {
 		blocked = true
-		action.BlockResponseHandler().ServeHTTP(w, tr)
+		if waffleResponseWriter.BodyWritten() {
+			log.Warn("response body is already written, will not respond with block page")
+		} else {
+			action.BlockResponseHandler().ServeHTTP(ww, rr)
+		}
 	}
 
-	return w, tr, blocked, afterHandler
+	return ww, rr, blocked, afterHandler
 }
 
 func WrapHandler(handler http.Handler, options Options) http.Handler {

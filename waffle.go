@@ -94,6 +94,7 @@ func WithCustomBlockedResponse(responseBodyHTML []byte, responseBodyJSON []byte)
 }
 
 func Start(opts ...Options) {
+	action.InitResponseWriterFeature()
 	c := defaultConfig()
 	for _, opt := range opts {
 		opt(c)

@@ -46,6 +46,8 @@ func DefaultRawRules() []byte {
 }
 
 func LoadRules(rulesJSON []byte) error {
+	RestRules()
+
 	if err := json.Unmarshal(rulesJSON, &LoadedRule); err != nil {
 		return err
 	}
@@ -58,6 +60,8 @@ func LoadRules(rulesJSON []byte) error {
 }
 
 func LoadDefaultRules() error {
+	RestRules()
+
 	if err := json.Unmarshal(rulesJSON, &LoadedRule); err != nil {
 		return err
 	}
@@ -181,4 +185,8 @@ func (c Condition) validateRegex() error {
 	}
 
 	return nil
+}
+
+func RestRules() {
+	LoadedRule = nil
 }

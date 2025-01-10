@@ -24,41 +24,41 @@ type InspectTargetValue interface {
 	GetValues(opts ...WithGetInspectTargetValueOptions) []string
 }
 
-type InspectTargetValueString struct {
+type StringValue struct {
 	Value string
 }
 
-func NewInspectTargetValueString(value string) InspectTargetValue {
-	return &InspectTargetValueString{
+func NewStringValue(value string) InspectTargetValue {
+	return &StringValue{
 		Value: value,
 	}
 }
 
-func (v *InspectTargetValueString) GetValue() string {
+func (v *StringValue) GetValue() string {
 	return v.Value
 }
 
-func (v *InspectTargetValueString) GetValues(opts ...WithGetInspectTargetValueOptions) []string {
+func (v *StringValue) GetValues(opts ...WithGetInspectTargetValueOptions) []string {
 	return []string{v.Value}
 }
 
-// InspectTargetValueKeyValues is a struct that contains key-values (map[string][]string, like http.Header and url.Values and more...) of the target.
-type InspectTargetValueKeyValues struct {
+// KeyValues is a struct that contains key-values (map[string][]string, like http.Header and url.Values and more...) of the target.
+type KeyValues struct {
 	Values map[string][]string
 }
 
-func NewInspectTargetValueKeyValues(values map[string][]string) InspectTargetValue {
-	return &InspectTargetValueKeyValues{
+func NewKeyValues(values map[string][]string) InspectTargetValue {
+	return &KeyValues{
 		Values: values,
 	}
 }
 
-func (v *InspectTargetValueKeyValues) GetValue() string {
+func (v *KeyValues) GetValue() string {
 	log.Error("GetValue() is not supported for InspectTargetValueKeyValues, return empty string")
 	return ""
 }
 
-func (v *InspectTargetValueKeyValues) GetValues(opts ...WithGetInspectTargetValueOptions) []string {
+func (v *KeyValues) GetValues(opts ...WithGetInspectTargetValueOptions) []string {
 	o := &GetInspectTargetValueOptions{}
 
 	for _, opt := range opts {

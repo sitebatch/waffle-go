@@ -74,7 +74,7 @@ func TestWAF(t *testing.T) {
 			},
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-					inspector.InspectTargetHttpRequestURL: inspector.NewInspectTargetValueString("http://malicious.com"),
+					inspector.InspectTargetHttpRequestURL: inspector.NewStringValue("http://malicious.com"),
 				},
 			},
 			expectBlock: true,
@@ -99,7 +99,7 @@ func TestWAF(t *testing.T) {
 			},
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-					inspector.InspectTargetHttpRequestURL: inspector.NewInspectTargetValueString("http://malicious.com"),
+					inspector.InspectTargetHttpRequestURL: inspector.NewStringValue("http://malicious.com"),
 				},
 			},
 			expectBlock: false,
@@ -122,7 +122,7 @@ func TestWAF(t *testing.T) {
 			},
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-					inspector.InspectTargetHttpRequestURL: inspector.NewInspectTargetValueString("http://example.com"),
+					inspector.InspectTargetHttpRequestURL: inspector.NewStringValue("http://example.com"),
 				},
 			},
 			expectBlock: false,
@@ -149,7 +149,7 @@ func TestWAF(t *testing.T) {
 			},
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-					inspector.InspectTargetHttpRequestURL: inspector.NewInspectTargetValueString("http://example.com"),
+					inspector.InspectTargetHttpRequestURL: inspector.NewStringValue("http://example.com"),
 				},
 			},
 			expectBlock: false,
@@ -173,7 +173,7 @@ func TestWAF(t *testing.T) {
 			},
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-					inspector.InspectTargetHttpRequestURL: inspector.NewInspectTargetValueString("http://malicious.com"),
+					inspector.InspectTargetHttpRequestURL: inspector.NewStringValue("http://malicious.com"),
 				},
 			},
 			expectBlock: true,
@@ -197,7 +197,7 @@ func TestWAF(t *testing.T) {
 			},
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-					inspector.InspectTargetHttpRequestHeader: inspector.NewInspectTargetValueKeyValues(http.Header{
+					inspector.InspectTargetHttpRequestHeader: inspector.NewKeyValues(http.Header{
 						"Host": []string{"malicious.com"},
 					}),
 				},

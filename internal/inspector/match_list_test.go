@@ -24,7 +24,7 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): inspector.NewInspectTargetValueString("q=/etc/passwd"),
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): inspector.NewStringValue("q=/etc/passwd"),
 					},
 				},
 				inspectorArgs: &inspector.MatchListInspectorArgs{
@@ -42,7 +42,7 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): inspector.NewInspectTargetValueString("q=/etc/passwd"),
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): inspector.NewStringValue("q=/etc/passwd"),
 					},
 				},
 				inspectorArgs: &inspector.MatchListInspectorArgs{
@@ -60,7 +60,7 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): inspector.NewInspectTargetValueString("q=/etc/passwd"),
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): inspector.NewStringValue("q=/etc/passwd"),
 					},
 				},
 				inspectorArgs: &inspector.MatchListInspectorArgs{

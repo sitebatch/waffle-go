@@ -57,62 +57,62 @@ func NewInspectDataBuilder() *InspectDataBuilder {
 }
 
 func (b *InspectDataBuilder) WithHTTPRequestURL(url string) *InspectDataBuilder {
-	b.Target[InspectTargetHttpRequestURL] = NewInspectTargetValueString(url)
+	b.Target[InspectTargetHttpRequestURL] = NewStringValue(url)
 	return b
 }
 
 func (b *InspectDataBuilder) WithHTTPRequestHeader(header http.Header) *InspectDataBuilder {
-	b.Target[InspectTargetHttpRequestHeader] = NewInspectTargetValueKeyValues(header)
+	b.Target[InspectTargetHttpRequestHeader] = NewKeyValues(header)
 	return b
 }
 
 func (b *InspectDataBuilder) WithHTTPRequestQuery(query url.Values) *InspectDataBuilder {
-	b.Target[InspectTargetHttpRequestQuery] = NewInspectTargetValueKeyValues(query)
+	b.Target[InspectTargetHttpRequestQuery] = NewKeyValues(query)
 	return b
 }
 
 func (b *InspectDataBuilder) WithHTTPRequestBody(body map[string][]string) *InspectDataBuilder {
-	b.Target[InspectTargetHttpRequestBody] = NewInspectTargetValueKeyValues(body)
+	b.Target[InspectTargetHttpRequestBody] = NewKeyValues(body)
 	return b
 }
 
 func (b *InspectDataBuilder) WithClientIP(clientIP string) *InspectDataBuilder {
-	b.Target[InspectTargetClientIP] = NewInspectTargetValueString(clientIP)
+	b.Target[InspectTargetClientIP] = NewStringValue(clientIP)
 	return b
 }
 
 func (b *InspectDataBuilder) WithHTTPClientRequestURL(url string) *InspectDataBuilder {
-	b.Target[InspectTargetHttpClientRequestURL] = NewInspectTargetValueString(url)
+	b.Target[InspectTargetHttpClientRequestURL] = NewStringValue(url)
 	return b
 }
 
 func (b *InspectDataBuilder) WithGraphQLRequestRawQuery(query string) *InspectDataBuilder {
-	b.Target[InspectTargetGraphQLRequestRawQuery] = NewInspectTargetValueString(query)
+	b.Target[InspectTargetGraphQLRequestRawQuery] = NewStringValue(query)
 	return b
 }
 
 func (b *InspectDataBuilder) WithGraphQLRequestOperationName(operationName string) *InspectDataBuilder {
-	b.Target[InspectTargetGraphQLRequestOperationName] = NewInspectTargetValueString(operationName)
+	b.Target[InspectTargetGraphQLRequestOperationName] = NewStringValue(operationName)
 	return b
 }
 
 func (b *InspectDataBuilder) WithGraphQLRequestVariables(variables map[string][]string) *InspectDataBuilder {
-	b.Target[InspectTargetGraphQLRequestVariables] = NewInspectTargetValueKeyValues(variables)
+	b.Target[InspectTargetGraphQLRequestVariables] = NewKeyValues(variables)
 	return b
 }
 
 func (b *InspectDataBuilder) WithSQLQuery(query string) *InspectDataBuilder {
-	b.Target[InspectTargetSQLQuery] = NewInspectTargetValueString(query)
+	b.Target[InspectTargetSQLQuery] = NewStringValue(query)
 	return b
 }
 
 func (b *InspectDataBuilder) WithFileOpenPath(path string) *InspectDataBuilder {
-	b.Target[InspectTargetOSFileOpen] = NewInspectTargetValueString(path)
+	b.Target[InspectTargetOSFileOpen] = NewStringValue(path)
 	return b
 }
 
 func (b *InspectDataBuilder) WithAccountTakeover(clientIP, userID string) *InspectDataBuilder {
-	b.Target[InspectTargetAccountTakeover] = NewInspectTargetValueKeyValues(map[string][]string{
+	b.Target[InspectTargetAccountTakeover] = NewKeyValues(map[string][]string{
 		"client_ip": {clientIP},
 		"user_id":   {userID},
 	})

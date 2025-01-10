@@ -3,6 +3,8 @@ package inspector
 import (
 	"net/http"
 	"net/url"
+
+	"github.com/sitebatch/waffle-go/internal/inspector/types"
 )
 
 type InspectTarget string
@@ -41,7 +43,7 @@ func (t InspectTarget) IsSupportKeyValueFiltering() bool {
 }
 
 type InspectData struct {
-	Target map[InspectTarget]InspectTargetValue
+	Target map[InspectTarget]types.InspectTargetValue
 }
 
 type InspectDataBuilder struct {
@@ -51,68 +53,68 @@ type InspectDataBuilder struct {
 func NewInspectDataBuilder() *InspectDataBuilder {
 	return &InspectDataBuilder{
 		InspectData: InspectData{
-			Target: make(map[InspectTarget]InspectTargetValue),
+			Target: make(map[InspectTarget]types.InspectTargetValue),
 		},
 	}
 }
 
 func (b *InspectDataBuilder) WithHTTPRequestURL(url string) *InspectDataBuilder {
-	b.Target[InspectTargetHttpRequestURL] = NewStringValue(url)
+	b.Target[InspectTargetHttpRequestURL] = types.NewStringValue(url)
 	return b
 }
 
 func (b *InspectDataBuilder) WithHTTPRequestHeader(header http.Header) *InspectDataBuilder {
-	b.Target[InspectTargetHttpRequestHeader] = NewKeyValues(header)
+	b.Target[InspectTargetHttpRequestHeader] = types.NewKeyValues(header)
 	return b
 }
 
 func (b *InspectDataBuilder) WithHTTPRequestQuery(query url.Values) *InspectDataBuilder {
-	b.Target[InspectTargetHttpRequestQuery] = NewKeyValues(query)
+	b.Target[InspectTargetHttpRequestQuery] = types.NewKeyValues(query)
 	return b
 }
 
 func (b *InspectDataBuilder) WithHTTPRequestBody(body map[string][]string) *InspectDataBuilder {
-	b.Target[InspectTargetHttpRequestBody] = NewKeyValues(body)
+	b.Target[InspectTargetHttpRequestBody] = types.NewKeyValues(body)
 	return b
 }
 
 func (b *InspectDataBuilder) WithClientIP(clientIP string) *InspectDataBuilder {
-	b.Target[InspectTargetClientIP] = NewStringValue(clientIP)
+	b.Target[InspectTargetClientIP] = types.NewStringValue(clientIP)
 	return b
 }
 
 func (b *InspectDataBuilder) WithHTTPClientRequestURL(url string) *InspectDataBuilder {
-	b.Target[InspectTargetHttpClientRequestURL] = NewStringValue(url)
+	b.Target[InspectTargetHttpClientRequestURL] = types.NewStringValue(url)
 	return b
 }
 
 func (b *InspectDataBuilder) WithGraphQLRequestRawQuery(query string) *InspectDataBuilder {
-	b.Target[InspectTargetGraphQLRequestRawQuery] = NewStringValue(query)
+	b.Target[InspectTargetGraphQLRequestRawQuery] = types.NewStringValue(query)
 	return b
 }
 
 func (b *InspectDataBuilder) WithGraphQLRequestOperationName(operationName string) *InspectDataBuilder {
-	b.Target[InspectTargetGraphQLRequestOperationName] = NewStringValue(operationName)
+	b.Target[InspectTargetGraphQLRequestOperationName] = types.NewStringValue(operationName)
 	return b
 }
 
 func (b *InspectDataBuilder) WithGraphQLRequestVariables(variables map[string][]string) *InspectDataBuilder {
-	b.Target[InspectTargetGraphQLRequestVariables] = NewKeyValues(variables)
+	b.Target[InspectTargetGraphQLRequestVariables] = types.NewKeyValues(variables)
 	return b
 }
 
 func (b *InspectDataBuilder) WithSQLQuery(query string) *InspectDataBuilder {
-	b.Target[InspectTargetSQLQuery] = NewStringValue(query)
+	b.Target[InspectTargetSQLQuery] = types.NewStringValue(query)
 	return b
 }
 
 func (b *InspectDataBuilder) WithFileOpenPath(path string) *InspectDataBuilder {
-	b.Target[InspectTargetOSFileOpen] = NewStringValue(path)
+	b.Target[InspectTargetOSFileOpen] = types.NewStringValue(path)
 	return b
 }
 
 func (b *InspectDataBuilder) WithAccountTakeover(clientIP, userID string) *InspectDataBuilder {
-	b.Target[InspectTargetAccountTakeover] = NewKeyValues(map[string][]string{
+	b.Target[InspectTargetAccountTakeover] = types.NewKeyValues(map[string][]string{
 		"client_ip": {clientIP},
 		"user_id":   {userID},
 	})

@@ -3,6 +3,7 @@ package inspector
 import (
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector/account_takeover"
+	"github.com/sitebatch/waffle-go/internal/inspector/types"
 	"golang.org/x/time/rate"
 )
 
@@ -38,8 +39,8 @@ func (i *AccountTakeoverInspector) Inspect(inspectData InspectData, args Inspect
 		return nil
 	}
 
-	clientIP := inspectValue.GetValues(WithParamNames([]string{"client_ip"}))
-	userID := inspectValue.GetValues(WithParamNames([]string{"user_id"}))
+	clientIP := inspectValue.GetValues(types.WithParamNames([]string{"client_ip"}))
+	userID := inspectValue.GetValues(types.WithParamNames([]string{"user_id"}))
 
 	if len(clientIP) == 0 || len(userID) == 0 {
 		return nil

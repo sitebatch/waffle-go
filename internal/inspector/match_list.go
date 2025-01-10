@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/sitebatch/waffle-go/action"
+	"github.com/sitebatch/waffle-go/internal/inspector/types"
 	"github.com/sitebatch/waffle-go/internal/log"
 	regexp "github.com/wasilibs/go-re2"
 )
@@ -43,7 +44,7 @@ func (m *MatchListInspector) Inspect(inspectData InspectData, inspectorArgs Insp
 		}
 
 		values := inspectData.Target[InspectTarget(target.Target)].GetValues(
-			WithParamNames(target.Params),
+			types.WithParamNames(target.Params),
 		)
 
 		for _, value := range values {

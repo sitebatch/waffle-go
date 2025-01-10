@@ -5,6 +5,7 @@ import (
 
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector/libinjection"
+	"github.com/sitebatch/waffle-go/internal/inspector/types"
 )
 
 type LibInjectionSQLIInspector struct{}
@@ -62,7 +63,7 @@ func (r *LibInjectionSQLIInspector) Inspect(inspectData InspectData, inspectorAr
 		}
 
 		values := inspectData.Target[InspectTarget(target.Target)].GetValues(
-			WithParamNames(target.Params),
+			types.WithParamNames(target.Params),
 		)
 
 		for _, value := range values {
@@ -88,7 +89,7 @@ func (r *LibInjectionXSSInspector) Inspect(inspectData InspectData, inspectorArg
 		}
 
 		values := inspectData.Target[InspectTarget(target.Target)].GetValues(
-			WithParamNames(target.Params),
+			types.WithParamNames(target.Params),
 		)
 
 		for _, value := range values {

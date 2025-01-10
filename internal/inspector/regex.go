@@ -6,6 +6,7 @@ import (
 	regexp "github.com/wasilibs/go-re2"
 
 	"github.com/sitebatch/waffle-go/action"
+	"github.com/sitebatch/waffle-go/internal/inspector/types"
 	"github.com/sitebatch/waffle-go/internal/log"
 )
 
@@ -43,7 +44,7 @@ func (r *RegexInspector) Inspect(inspectData InspectData, inspectorArgs Inspecto
 		}
 
 		values := inspectData.Target[InspectTarget(target.Target)].GetValues(
-			WithParamNames(target.Params),
+			types.WithParamNames(target.Params),
 		)
 
 		for _, value := range values {

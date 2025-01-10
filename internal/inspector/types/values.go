@@ -1,4 +1,4 @@
-package inspector
+package types
 
 import (
 	"github.com/sitebatch/waffle-go/internal/log"

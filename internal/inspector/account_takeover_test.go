@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector"
+	"github.com/sitebatch/waffle-go/internal/inspector/types"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/time/rate"
 )
@@ -27,8 +28,8 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 		"single IP address that make a lot of login request": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTargetAccountTakeover: inspector.NewKeyValues(
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTargetAccountTakeover: types.NewKeyValues(
 							map[string][]string{
 								"client_ip": {"192.168.1.1"},
 								"user_id":   {generateDummyUserID(t)},
@@ -47,8 +48,8 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 		"single user id that make a lot of login request": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTargetAccountTakeover: inspector.NewKeyValues(
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTargetAccountTakeover: types.NewKeyValues(
 							map[string][]string{
 								"client_ip": {generateDummyIP(t)},
 								"user_id":   {"user@example.com"},
@@ -67,8 +68,8 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 		"single IP address no reache limit": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTargetAccountTakeover: inspector.NewKeyValues(
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTargetAccountTakeover: types.NewKeyValues(
 							map[string][]string{
 								"client_ip": {"10.0.1.1"},
 								"user_id":   {generateDummyUserID(t)},
@@ -87,8 +88,8 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 		"single user id no reache limit": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTargetAccountTakeover: inspector.NewKeyValues(
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTargetAccountTakeover: types.NewKeyValues(
 							map[string][]string{
 								"client_ip": {generateDummyIP(t)},
 								"user_id":   {"user@example.jp"},
@@ -115,11 +116,11 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 				i := inspector.NewAccountTakeoverInspector()
 
 				if tt.randomizeTo == "client_ip" {
-					tt.arrange.inspectData.Target[inspector.InspectTargetAccountTakeover].(*inspector.KeyValues).Values["client_ip"][0] = generateDummyIP(t)
+					tt.arrange.inspectData.Target[inspector.InspectTargetAccountTakeover].(*types.KeyValues).Values["client_ip"][0] = generateDummyIP(t)
 				}
 
 				if tt.randomizeTo == "user_id" {
-					tt.arrange.inspectData.Target[inspector.InspectTargetAccountTakeover].(*inspector.KeyValues).Values["user_id"][0] = generateDummyUserID(t)
+					tt.arrange.inspectData.Target[inspector.InspectTargetAccountTakeover].(*types.KeyValues).Values["user_id"][0] = generateDummyUserID(t)
 				}
 
 				err = i.Inspect(tt.arrange.inspectData, tt.arrange.inspectorArgs)

@@ -5,6 +5,7 @@ import (
 
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector"
+	"github.com/sitebatch/waffle-go/internal/inspector/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,8 +24,8 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 		"when match return detection error": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): inspector.NewStringValue("q=/etc/passwd"),
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): types.NewStringValue("q=/etc/passwd"),
 					},
 				},
 				inspectorArgs: &inspector.MatchListInspectorArgs{
@@ -41,8 +42,8 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 		"when not match return nil": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): inspector.NewStringValue("q=/etc/passwd"),
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): types.NewStringValue("q=/etc/passwd"),
 					},
 				},
 				inspectorArgs: &inspector.MatchListInspectorArgs{
@@ -59,8 +60,8 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 		"when multiple targets": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): inspector.NewStringValue("q=/etc/passwd"),
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): types.NewStringValue("q=/etc/passwd"),
 					},
 				},
 				inspectorArgs: &inspector.MatchListInspectorArgs{

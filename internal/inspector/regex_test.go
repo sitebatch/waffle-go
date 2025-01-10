@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/sitebatch/waffle-go/internal/inspector"
+	"github.com/sitebatch/waffle-go/internal/inspector/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,8 +24,8 @@ func TestRegexInspector_Inspect(t *testing.T) {
 		"when invalid args, return error": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL): inspector.NewStringValue("http://malicious.com"),
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL): types.NewStringValue("http://malicious.com"),
 					},
 				},
 				inspectorArgs: &inspector.LibInjectionSQLIInspectorArgs{},
@@ -34,9 +35,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 		"inspect data has multiple targets": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestPath): inspector.NewStringValue("/path/to/file"),
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL):  inspector.NewStringValue("http://malicious.com"),
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestPath): types.NewStringValue("/path/to/file"),
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL):  types.NewStringValue("http://malicious.com"),
 					},
 				},
 				inspectorArgs: &inspector.RegexInspectorArgs{
@@ -53,8 +54,8 @@ func TestRegexInspector_Inspect(t *testing.T) {
 		"if rule has only one target and match regex, return detection error": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL): inspector.NewStringValue("http://malicious.com"),
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL): types.NewStringValue("http://malicious.com"),
 					},
 				},
 				inspectorArgs: &inspector.RegexInspectorArgs{
@@ -71,8 +72,8 @@ func TestRegexInspector_Inspect(t *testing.T) {
 		"if rule has only one target and not match regex, return nil": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL): inspector.NewStringValue("http://example.com"),
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL): types.NewStringValue("http://example.com"),
 					},
 				},
 				inspectorArgs: &inspector.RegexInspectorArgs{
@@ -89,9 +90,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 		"if rule has multiple target and match regex, return error": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL):  inspector.NewStringValue("http://malicious.com"),
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestPath): inspector.NewStringValue("/path/to/file"),
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL):  types.NewStringValue("http://malicious.com"),
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestPath): types.NewStringValue("/path/to/file"),
 					},
 				},
 				inspectorArgs: &inspector.RegexInspectorArgs{
@@ -111,8 +112,8 @@ func TestRegexInspector_Inspect(t *testing.T) {
 		"if rule has key option and match regex, return error": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestHeader): inspector.NewKeyValues(http.Header{
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestHeader): types.NewKeyValues(http.Header{
 							"User-Agent": []string{"Chrome", "Firefox"},
 						}),
 					},
@@ -132,8 +133,8 @@ func TestRegexInspector_Inspect(t *testing.T) {
 		"if rule has key option and not match regex, return nil": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestHeader): inspector.NewKeyValues(http.Header{
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestHeader): types.NewKeyValues(http.Header{
 							"User-Agent": []string{"Chrome", "Firefox"},
 						}),
 					},
@@ -153,8 +154,8 @@ func TestRegexInspector_Inspect(t *testing.T) {
 		"if rule has key option, but has not key in inspect data, return nil": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]inspector.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestHeader): inspector.NewKeyValues(http.Header{
+					Target: map[inspector.InspectTarget]types.InspectTargetValue{
+						inspector.InspectTarget(inspector.InspectTargetHttpRequestHeader): types.NewKeyValues(http.Header{
 							"Host": []string{"example.com"},
 						}),
 					},

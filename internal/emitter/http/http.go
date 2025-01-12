@@ -60,7 +60,7 @@ func buildHttpRequestHandlerOperationArg(r *http.Request) HTTPRequestHandlerOper
 		body = map[string][]string{}
 	}
 	return HTTPRequestHandlerOperationArg{
-		URL:         fullURL(r),
+		URL:         BuildFullURL(r),
 		Path:        r.URL.Path,
 		Headers:     r.Header,
 		QueryValues: r.URL.Query(),
@@ -69,11 +69,15 @@ func buildHttpRequestHandlerOperationArg(r *http.Request) HTTPRequestHandlerOper
 	}
 }
 
-func fullURL(r *http.Request) string {
+func BuildFullURL(r *http.Request) string {
 	scheme := "http"
 	if r.TLS != nil {
 		scheme = "https"
 	}
 
-	return fmt.Sprintf("%s://%s%s?%s#%s", scheme, r.Host, r.URL.Path, r.URL.RawQuery, r.URL.Fragment)
+	if r.URL.RawQuery == "" {
+		return fmt.Sprintf("%s://%s%s", scheme, r.Host, r.URL.Path)
+	}
+
+	return fmt.Sprintf("%s://%s%s?%s", scheme, r.Host, r.URL.Path, r.URL.RawQuery)
 }

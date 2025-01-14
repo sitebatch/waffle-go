@@ -4,7 +4,7 @@ go 1.23.4
 
 require (
 	github.com/99designs/gqlgen v0.17.63
-	github.com/ebitengine/purego v0.8.1
+	github.com/ebitengine/purego v0.8.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
 	github.com/jeremywohl/flatten v1.0.1

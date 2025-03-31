@@ -1,9 +1,10 @@
 module github.com/sitebatch/waffle-go
 
 go 1.23.4
+toolchain go1.24.1
 
 require (
-	github.com/99designs/gqlgen v0.17.68
+	github.com/99designs/gqlgen v0.17.70
 	github.com/ebitengine/purego v0.8.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0

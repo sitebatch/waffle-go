@@ -6,7 +6,7 @@ replace github.com/sitebatch/waffle-go => ../..
 
 require (
 	github.com/gin-gonic/gin v1.10.0
-	github.com/mattn/go-sqlite3 v1.14.24
+	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/sitebatch/waffle-go v0.0.0-00010101000000-000000000000
 )
 

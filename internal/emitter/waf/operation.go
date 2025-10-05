@@ -27,9 +27,15 @@ type WafOperationResult struct {
 	DetectionEvents DetectionEvents
 }
 
-type WafOperationContext struct {
+type HttpRequestContext struct {
 	URL      string
+	Headers  map[string][]string
+	Body     map[string][]string
 	ClientIP string
+}
+
+type WafOperationContext struct {
+	HttpRequestContext *HttpRequestContext
 }
 
 func (WafOperationArg) IsArgOf(*WafOperation)       {}
@@ -105,8 +111,8 @@ func (wafOp *WafOperation) log(action string, msg string, ruleID string, inspect
 	var url string
 
 	if wafOp.wafOperationContext != nil {
-		clientIP = wafOp.wafOperationContext.ClientIP
-		url = wafOp.wafOperationContext.URL
+		clientIP = wafOp.wafOperationContext.HttpRequestContext.ClientIP
+		url = wafOp.wafOperationContext.HttpRequestContext.URL
 	}
 
 	switch action {

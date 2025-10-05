@@ -36,8 +36,12 @@ func StartHTTPRequestHandlerOperation(ctx context.Context, args HTTPRequestHandl
 	wafOp, found := operation.FindOperation[waf.WafOperation](ctx)
 	if !found {
 		wafOp, ctx = waf.StartWafOperation(ctx, waf.WithOperationContext(waf.WafOperationContext{
-			URL:      args.URL,
-			ClientIP: args.ClientIP,
+			HttpRequestContext: &waf.HttpRequestContext{
+				URL:      args.URL,
+				Headers:  args.Headers,
+				Body:     args.Body,
+				ClientIP: args.ClientIP,
+			},
 		}))
 	}
 

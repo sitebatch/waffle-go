@@ -1,7 +1,10 @@
 package waffle
 
 import (
+	"context"
+
 	"github.com/sitebatch/waffle-go/action"
+	"github.com/sitebatch/waffle-go/internal/emitter/waf"
 	"github.com/sitebatch/waffle-go/internal/listener"
 	"github.com/sitebatch/waffle-go/internal/listener/account_takeover"
 	"github.com/sitebatch/waffle-go/internal/listener/graphql"
@@ -110,4 +113,14 @@ func Start(opts ...Options) {
 	}
 
 	log.Info("waffle: started")
+}
+
+func SetUser(ctx context.Context, userID string) error {
+	op, found := operation.FindOperation[waf.WafOperation](ctx)
+	if !found {
+		return nil
+	}
+
+	op.SetMeta(string(waf.UserID), userID)
+	return nil
 }

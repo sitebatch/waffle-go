@@ -12,12 +12,12 @@ import (
 	"github.com/sitebatch/waffle-go/internal/rule"
 )
 
-// WafOperation is an operation that inspects the request data and blocks the request if it violates the WAF rules.
+// WafOperation is an operation that represents a WAF inspection process.
 type WafOperation struct {
 	operation.Operation
-	Waf WAF
 
-	wafOperationContext *WafOperationContext
+	Waf                 WAF
+	WafOperationContext *WafOperationContext
 	blockErr            *action.BlockError
 }
 
@@ -27,7 +27,7 @@ type WafOperationResult struct {
 	DetectionEvents DetectionEvents
 }
 
-type HttpRequestContext struct {
+type HttpRequest struct {
 	URL      string
 	Headers  map[string][]string
 	Body     map[string][]string
@@ -35,7 +35,8 @@ type HttpRequestContext struct {
 }
 
 type WafOperationContext struct {
-	HttpRequestContext *HttpRequestContext
+	Meta        map[string]string
+	HttpRequest *HttpRequest
 }
 
 func (WafOperationArg) IsArgOf(*WafOperation)       {}
@@ -49,7 +50,7 @@ type Option func(*WafOperation)
 
 func WithOperationContext(w WafOperationContext) Option {
 	return func(o *WafOperation) {
-		o.wafOperationContext = &w
+		o.WafOperationContext = &w
 	}
 }
 
@@ -69,6 +70,12 @@ func StartWafOperation(ctx context.Context, opts ...Option) (*WafOperation, cont
 
 	for _, opt := range opts {
 		opt(op)
+	}
+
+	if op.WafOperationContext == nil {
+		op.WafOperationContext = &WafOperationContext{
+			Meta: make(map[string]string),
+		}
 	}
 
 	return op, operation.StartAndRegisterOperation(ctx, op, WafOperationArg{})
@@ -106,13 +113,37 @@ func (wafOp *WafOperation) FinishInspect(res *WafOperationResult) {
 	res.DetectionEvents = wafOp.Waf.GetDetectionEvents()
 }
 
+func (wafOp *WafOperation) SetMeta(key string, value string) {
+	if wafOp.WafOperationContext == nil {
+		wafOp.WafOperationContext = &WafOperationContext{
+			Meta: make(map[string]string),
+		}
+	}
+
+	if wafOp.WafOperationContext.Meta == nil {
+		wafOp.WafOperationContext.Meta = make(map[string]string)
+	}
+
+	wafOp.WafOperationContext.Meta[key] = value
+}
+
+func (wafOp WafOperation) OperationContext() *WafOperationContext {
+	return wafOp.WafOperationContext
+}
+
 func (wafOp *WafOperation) log(action string, msg string, ruleID string, inspector string) {
 	var clientIP string
 	var url string
 
-	if wafOp.wafOperationContext != nil {
-		clientIP = wafOp.wafOperationContext.HttpRequestContext.ClientIP
-		url = wafOp.wafOperationContext.HttpRequestContext.URL
+	if wafOp.WafOperationContext != nil {
+		clientIP = wafOp.WafOperationContext.HttpRequest.ClientIP
+		url = wafOp.WafOperationContext.HttpRequest.URL
+	}
+
+	if wafOp.WafOperationContext.Meta != nil {
+		if userID, ok := wafOp.WafOperationContext.Meta["UserID"]; ok {
+			log.Info("user", "userID", userID)
+		}
 	}
 
 	switch action {

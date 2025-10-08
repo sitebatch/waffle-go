@@ -1,6 +1,10 @@
 package action
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
+)
 
 type HttpRequest struct {
 	URL      string
@@ -37,5 +41,23 @@ func NewDeetectionEvent(ruleID, inspector, message, payload string, context *Det
 		Inspector: inspector,
 		Message:   message,
 		Context:   context,
+	}
+}
+
+func NewDetectionContext(wafOpCtx *wafcontext.WafOperationContext) *DetectionContext {
+	if wafOpCtx == nil {
+		return &DetectionContext{}
+	}
+
+	req := wafOpCtx.GetHttpRequest()
+
+	return &DetectionContext{
+		Meta: wafOpCtx.GetMeta(),
+		HttpRequest: &HttpRequest{
+			URL:      req.URL,
+			Headers:  req.Headers,
+			Body:     req.Body,
+			ClientIP: req.ClientIP,
+		},
 	}
 }

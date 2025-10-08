@@ -98,19 +98,7 @@ func (w *waf) addDetectionEvent(wafOpCtx *wafcontext.WafOperationContext, ruleID
 		w.detectionEvents[ruleID] = ruleConditionResult{}
 	}
 
-	detectionContext := &action.DetectionContext{}
-	if wafOpCtx.Meta != nil {
-		detectionContext.Meta = wafOpCtx.Meta
-	}
-
-	if wafOpCtx.HttpRequest != nil {
-		detectionContext.HttpRequest = &action.HttpRequest{
-			URL:      wafOpCtx.HttpRequest.URL,
-			Headers:  wafOpCtx.HttpRequest.Headers,
-			Body:     wafOpCtx.HttpRequest.Body,
-			ClientIP: wafOpCtx.HttpRequest.ClientIP,
-		}
-	}
+	detectionContext := action.NewDetectionContext(wafOpCtx)
 
 	event := action.NewDeetectionEvent(
 		ruleID,

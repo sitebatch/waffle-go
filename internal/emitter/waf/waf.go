@@ -1,27 +1,22 @@
 package waf
 
 import (
-	"errors"
 	"sync"
 
 	"github.com/sitebatch/waffle-go/action"
+	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/log"
 	"github.com/sitebatch/waffle-go/internal/rule"
 	"golang.org/x/time/rate"
 )
 
-type detectionResult struct {
-	inspector string
-	reason    error
-}
-
-type ruleConditionResult map[string]detectionResult
+type ruleConditionResult map[string]action.DetectionEvent
 type DetectionEvents map[string]ruleConditionResult
 
 type WAF interface {
 	RegisterInspector(name string, inspector inspector.Inspector)
-	Inspect(data inspector.InspectData) error
+	Inspect(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) error
 	GetDetectionEvents() DetectionEvents
 }
 
@@ -69,20 +64,20 @@ func (w *waf) GetDetectionEvents() DetectionEvents {
 }
 
 // Inspect checks the data against the rules and returns an error if the data is blocked.
-func (w *waf) Inspect(data inspector.InspectData) error {
+func (w *waf) Inspect(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) error {
 	for _, rule := range w.rules.Rules {
-		if err := w.inspect(rule, data); err != nil {
+		if err := w.inspect(wafOpCtx, rule, data); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (w *waf) handleAction(rule rule.Rule, inspector string, detectionErr *action.DetectionError) error {
+func (w *waf) handleAction(wafOpCtx *wafcontext.WafOperationContext, rule rule.Rule, inspector string, suspicious *inspector.SuspiciousResult) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	w.addDetectionEvent(rule.ID, inspector, detectionErr)
+	w.addDetectionEvent(wafOpCtx, rule.ID, inspector, suspicious)
 	if len(w.detectionEvents[rule.ID]) != len(rule.Conditions) {
 		return nil
 	}
@@ -98,41 +93,61 @@ func (w *waf) handleAction(rule rule.Rule, inspector string, detectionErr *actio
 	}
 }
 
-func (w *waf) addDetectionEvent(ruleID, inspector string, reason error) {
+func (w *waf) addDetectionEvent(wafOpCtx *wafcontext.WafOperationContext, ruleID, inspector string, suspicious *inspector.SuspiciousResult) {
 	if _, exists := w.detectionEvents[ruleID]; !exists {
 		w.detectionEvents[ruleID] = ruleConditionResult{}
 	}
 
-	w.detectionEvents[ruleID][inspector] = detectionResult{
-		inspector: inspector,
-		reason:    reason,
+	detectionContext := &action.DetectionContext{}
+	if wafOpCtx.Meta != nil {
+		detectionContext.Meta = wafOpCtx.Meta
 	}
+
+	if wafOpCtx.HttpRequest != nil {
+		detectionContext.HttpRequest = &action.HttpRequest{
+			URL:      wafOpCtx.HttpRequest.URL,
+			Headers:  wafOpCtx.HttpRequest.Headers,
+			Body:     wafOpCtx.HttpRequest.Body,
+			ClientIP: wafOpCtx.HttpRequest.ClientIP,
+		}
+	}
+
+	event := action.NewDeetectionEvent(
+		ruleID,
+		inspector,
+		suspicious.Message,
+		suspicious.Payload,
+		detectionContext,
+	)
+
+	w.detectionEvents[ruleID][inspector] = event
 }
 
-func (w *waf) inspect(rule rule.Rule, data inspector.InspectData) error {
+func (w *waf) inspect(wafOpCtx *wafcontext.WafOperationContext, rule rule.Rule, data inspector.InspectData) error {
 	for _, condition := range rule.Conditions {
-		if err := w.inspectCondition(rule, condition, data); err != nil {
+		if err := w.inspectCondition(wafOpCtx, rule, condition, data); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (w *waf) inspectCondition(rule rule.Rule, condition rule.Condition, data inspector.InspectData) error {
+func (w *waf) inspectCondition(wafOpCtx *wafcontext.WafOperationContext, rule rule.Rule, condition rule.Condition, data inspector.InspectData) error {
 	for _, target := range condition.InspectTarget {
 		if !data.HasTarget(inspector.InspectTarget(target.Target)) {
 			continue
 		}
 
 		if i, exists := w.inspectors[condition.Inspector]; exists {
-			if err := w.doInspect(i, data, condition); err != nil {
-				var detectionErr *action.DetectionError
-				if errors.As(err, &detectionErr) {
-					if err := w.handleAction(rule, condition.Inspector, detectionErr); err != nil {
-						return err
-					}
-				} else {
-					log.Error("Error while inspecting", "error", err)
+			suspicious, err := w.doInspect(i, data, condition)
+			if err != nil {
+				log.Error("Error while inspecting", "error", err)
+				continue
+			}
+
+			if suspicious != nil {
+				if err := w.handleAction(wafOpCtx, rule, condition.Inspector, suspicious); err != nil {
+					return err
 				}
 			}
 		}
@@ -140,7 +155,7 @@ func (w *waf) inspectCondition(rule rule.Rule, condition rule.Condition, data in
 	return nil
 }
 
-func (w *waf) doInspect(i inspector.Inspector, data inspector.InspectData, condition rule.Condition) error {
+func (w *waf) doInspect(i inspector.Inspector, data inspector.InspectData, condition rule.Condition) (*inspector.SuspiciousResult, error) {
 	switch i.Name() {
 	case inspector.RegexInspectorName:
 		return i.Inspect(data, &inspector.RegexInspectorArgs{

@@ -1,7 +1,6 @@
 package inspector
 
 import (
-	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector/ssrf"
 )
 
@@ -24,17 +23,20 @@ func (i *SSRFInspector) IsSupportTarget(target InspectTarget) bool {
 	return target == InspectTargetHttpClientRequestURL
 }
 
-func (i *SSRFInspector) Inspect(inspectData InspectData, args InspectorArgs) error {
+func (i *SSRFInspector) Inspect(inspectData InspectData, args InspectorArgs) (*SuspiciousResult, error) {
 	inspectValue := inspectData.Target[InspectTargetHttpClientRequestURL]
 	if inspectValue == nil {
-		return nil
+		return nil, nil
 	}
 
 	url := inspectValue.GetValue()
 
 	if err := ssrf.IsCloudMetadataServiceURL(url); err != nil {
-		return &action.DetectionError{Reason: err.Error()}
+		return &SuspiciousResult{
+			Payload: url,
+			Message: err.Error(),
+		}, nil
 	}
 
-	return nil
+	return nil, nil
 }

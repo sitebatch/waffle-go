@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
+	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/inspector/types"
 	"github.com/sitebatch/waffle-go/internal/rule"
@@ -22,11 +22,15 @@ func (m *MockInspector) IsSupportTarget(target inspector.InspectTarget) bool {
 	return true
 }
 
-func (m *MockInspector) Inspect(data inspector.InspectData, args inspector.InspectorArgs) error {
-	if data.Target[inspector.InspectTargetHttpRequestURL].GetValue() == "http://malicious.com" {
-		return &action.DetectionError{Reason: "malicious URL detected"}
+func (m *MockInspector) Inspect(data inspector.InspectData, args inspector.InspectorArgs) (*inspector.SuspiciousResult, error) {
+	url := data.Target[inspector.InspectTargetHttpRequestURL].GetValue()
+	if url == "http://malicious.com" {
+		return &inspector.SuspiciousResult{
+			Message: "malicious URL detected",
+			Payload: url,
+		}, nil
 	}
-	return nil
+	return nil, nil
 }
 
 type NothingInspector struct{}
@@ -39,8 +43,8 @@ func (n *NothingInspector) IsSupportTarget(target inspector.InspectTarget) bool 
 	return true
 }
 
-func (n *NothingInspector) Inspect(data inspector.InspectData, args inspector.InspectorArgs) error {
-	return nil
+func (n *NothingInspector) Inspect(data inspector.InspectData, args inspector.InspectorArgs) (*inspector.SuspiciousResult, error) {
+	return nil, nil
 }
 
 func TestWAF(t *testing.T) {
@@ -52,6 +56,7 @@ func TestWAF(t *testing.T) {
 
 	testCases := map[string]struct {
 		arrange     arrange
+		wafOpCtx    *wafcontext.WafOperationContext
 		inspectData inspector.InspectData
 		expectBlock bool
 	}{
@@ -71,6 +76,15 @@ func TestWAF(t *testing.T) {
 							},
 						},
 					},
+				},
+			},
+			wafOpCtx: &wafcontext.WafOperationContext{
+				Meta: map[string]string{},
+				HttpRequest: &wafcontext.HttpRequest{
+					URL:      "http://malicious.com",
+					Headers:  http.Header{"Host": []string{"malicious.com"}},
+					Body:     map[string][]string{},
+					ClientIP: "10.0.1.1",
 				},
 			},
 			inspectData: inspector.InspectData{
@@ -98,6 +112,15 @@ func TestWAF(t *testing.T) {
 					},
 				},
 			},
+			wafOpCtx: &wafcontext.WafOperationContext{
+				Meta: map[string]string{},
+				HttpRequest: &wafcontext.HttpRequest{
+					URL:      "http://malicious.com",
+					Headers:  http.Header{"Host": []string{"malicious.com"}},
+					Body:     map[string][]string{},
+					ClientIP: "10.0.1.1",
+				},
+			},
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]types.InspectTargetValue{
 					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://malicious.com"),
@@ -119,6 +142,15 @@ func TestWAF(t *testing.T) {
 							},
 						},
 					},
+				},
+			},
+			wafOpCtx: &wafcontext.WafOperationContext{
+				Meta: map[string]string{},
+				HttpRequest: &wafcontext.HttpRequest{
+					URL:      "http://example.com",
+					Headers:  http.Header{"Host": []string{"example.com"}},
+					Body:     map[string][]string{},
+					ClientIP: "10.0.1.1",
 				},
 			},
 			inspectData: inspector.InspectData{
@@ -148,6 +180,15 @@ func TestWAF(t *testing.T) {
 					},
 				},
 			},
+			wafOpCtx: &wafcontext.WafOperationContext{
+				Meta: map[string]string{},
+				HttpRequest: &wafcontext.HttpRequest{
+					URL:      "http://example.com",
+					Headers:  http.Header{"Host": []string{"example.com"}},
+					Body:     map[string][]string{},
+					ClientIP: "10.0.1.1",
+				},
+			},
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]types.InspectTargetValue{
 					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://example.com"),
@@ -170,6 +211,15 @@ func TestWAF(t *testing.T) {
 							},
 						},
 					},
+				},
+			},
+			wafOpCtx: &wafcontext.WafOperationContext{
+				Meta: map[string]string{},
+				HttpRequest: &wafcontext.HttpRequest{
+					URL:      "http://malicious.com",
+					Headers:  http.Header{"Host": []string{"malicious.com"}},
+					Body:     map[string][]string{},
+					ClientIP: "10.0.1.1",
 				},
 			},
 			inspectData: inspector.InspectData{
@@ -196,6 +246,15 @@ func TestWAF(t *testing.T) {
 					},
 				},
 			},
+			wafOpCtx: &wafcontext.WafOperationContext{
+				Meta: map[string]string{},
+				HttpRequest: &wafcontext.HttpRequest{
+					URL:      "http://example.com",
+					Headers:  http.Header{"Host": []string{"malicious.com"}},
+					Body:     map[string][]string{},
+					ClientIP: "10.0.1.1",
+				},
+			},
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]types.InspectTargetValue{
 					inspector.InspectTargetHttpRequestHeader: types.NewKeyValues(http.Header{
@@ -208,8 +267,6 @@ func TestWAF(t *testing.T) {
 	}
 
 	for name, tt := range testCases {
-		tt := tt
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -218,11 +275,11 @@ func TestWAF(t *testing.T) {
 				Rules:   tt.arrange.rules,
 			}
 
-			waf := waf.NewWAF(rules)
-			waf.RegisterInspector("mock", &MockInspector{})
-			waf.RegisterInspector("nothing", &NothingInspector{})
+			w := waf.NewWAF(rules)
+			w.RegisterInspector("mock", &MockInspector{})
+			w.RegisterInspector("nothing", &NothingInspector{})
 
-			err := waf.Inspect(tt.inspectData)
+			err := w.Inspect(tt.wafOpCtx, tt.inspectData)
 
 			if tt.expectBlock {
 				assert.Error(t, err)

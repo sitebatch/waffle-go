@@ -18,11 +18,8 @@ type DetectionEvent struct {
 	RuleID    string
 	Inspector string
 	Message   string
-	Context   DetectionContext
-}
-
-type DetectionError struct {
-	Reason string
+	Payload   string
+	Context   *DetectionContext
 }
 
 type BlockError struct {
@@ -30,10 +27,15 @@ type BlockError struct {
 	Inspector string
 }
 
-func (e *DetectionError) Error() string {
-	return e.Reason
-}
-
 func (e *BlockError) Error() string {
 	return fmt.Sprintf("blocked by rule %s with inspector %s", e.RuleID, e.Inspector)
+}
+
+func NewDeetectionEvent(ruleID, inspector, message, payload string, context *DetectionContext) DetectionEvent {
+	return DetectionEvent{
+		RuleID:    ruleID,
+		Inspector: inspector,
+		Message:   message,
+		Context:   context,
+	}
 }

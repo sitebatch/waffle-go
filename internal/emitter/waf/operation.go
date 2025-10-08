@@ -72,7 +72,7 @@ func StartWafOperation(ctx context.Context, opts ...Option) (*WafOperation, cont
 
 // Run inspects the request data and blocks the request if it violates the WAF rules.
 func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.InspectData) {
-	err := wafOp.Waf.Inspect(inspectData)
+	err := wafOp.Waf.Inspect(wafOp.OperationContext(), inspectData)
 	if err != nil {
 		var blockError *action.BlockError
 		if errors.As(err, &blockError) {
@@ -86,7 +86,7 @@ func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.Ins
 
 	for ruleID, event := range wafOp.Waf.GetDetectionEvents() {
 		for inspector, result := range event {
-			wafOp.log("detect", fmt.Sprintf("Threat detected: %s", result.reason.Error()), ruleID, inspector)
+			wafOp.log("detect", fmt.Sprintf("Threat detected: %s", result.Message), ruleID, inspector)
 		}
 	}
 }

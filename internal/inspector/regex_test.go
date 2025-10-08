@@ -19,7 +19,8 @@ func TestRegexInspector_Inspect(t *testing.T) {
 
 	testCases := map[string]struct {
 		arrange
-		expectError bool
+		suspiciousPayload string
+		expectError       bool
 	}{
 		"when invalid args, return error": {
 			arrange: arrange{
@@ -49,9 +50,10 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					},
 				},
 			},
-			expectError: true,
+			suspiciousPayload: "http://malicious.com",
+			expectError:       false,
 		},
-		"if rule has only one target and match regex, return detection error": {
+		"rule has an target and match regex": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
@@ -67,9 +69,10 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					},
 				},
 			},
-			expectError: true,
+			suspiciousPayload: "http://malicious.com",
+			expectError:       false,
 		},
-		"if rule has only one target and not match regex, return nil": {
+		"rule has an target, but not match regex": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
@@ -87,7 +90,7 @@ func TestRegexInspector_Inspect(t *testing.T) {
 			},
 			expectError: false,
 		},
-		"if rule has multiple target and match regex, return error": {
+		"rule has multiple targets and match regex": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
@@ -107,9 +110,10 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					},
 				},
 			},
-			expectError: true,
+			suspiciousPayload: "http://malicious.com",
+			expectError:       false,
 		},
-		"if rule has key option and match regex, return error": {
+		"rule has key option and match regex": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
@@ -128,9 +132,10 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					},
 				},
 			},
-			expectError: true,
+			suspiciousPayload: "Firefox",
+			expectError:       false,
 		},
-		"if rule has key option and not match regex, return nil": {
+		"rule has key option and not match regex": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
@@ -151,7 +156,7 @@ func TestRegexInspector_Inspect(t *testing.T) {
 			},
 			expectError: false,
 		},
-		"if rule has key option, but has not key in inspect data, return nil": {
+		"rule has key option, but has not key in inspect data": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
@@ -175,15 +180,23 @@ func TestRegexInspector_Inspect(t *testing.T) {
 	}
 
 	for name, tt := range testCases {
-		tt := tt
 		t.Run(name, func(t *testing.T) {
 			inspector := inspector.NewRegexInspector()
-			err := inspector.Inspect(tt.arrange.inspectData, tt.arrange.inspectorArgs)
+			suspicious, err := inspector.Inspect(tt.arrange.inspectData, tt.arrange.inspectorArgs)
 			if tt.expectError {
 				assert.Error(t, err)
+				assert.Nil(t, suspicious)
 				return
 			}
 
+			if tt.suspiciousPayload == "" {
+				assert.Nil(t, suspicious)
+				assert.NoError(t, err)
+				return
+			}
+
+			assert.NotNil(t, suspicious)
+			assert.Equal(t, tt.suspiciousPayload, suspicious.Payload)
 			assert.NoError(t, err)
 		})
 	}

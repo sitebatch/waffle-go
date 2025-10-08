@@ -7,20 +7,21 @@ import (
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/emitter/http"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
+	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/operation"
 	"github.com/stretchr/testify/assert"
 )
 
 type mockWaf struct {
-	mockInspectFunc        func(data inspector.InspectData) error
+	mockInspectFunc        func(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) error
 	mockGetDetectionEvents func() waf.DetectionEvents
 }
 
 func (w *mockWaf) RegisterInspector(name string, inspector inspector.Inspector) {}
 
-func (w *mockWaf) Inspect(data inspector.InspectData) error {
-	return w.mockInspectFunc(data)
+func (w *mockWaf) Inspect(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) error {
+	return w.mockInspectFunc(wafOpCtx, data)
 }
 
 func (w *mockWaf) GetDetectionEvents() waf.DetectionEvents {
@@ -60,7 +61,7 @@ func TestWafOperation_Run(t *testing.T) {
 	}
 
 	type arrange struct {
-		mockInspectFunc        func(data inspector.InspectData) error
+		mockInspectFunc        func(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) error
 		mockGetDetectionEvents func() waf.DetectionEvents
 	}
 
@@ -70,7 +71,7 @@ func TestWafOperation_Run(t *testing.T) {
 	}{
 		"when inspector return block error, set block on waf operation": {
 			arrange: arrange{
-				mockInspectFunc: func(data inspector.InspectData) error {
+				mockInspectFunc: func(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) error {
 					return &action.BlockError{RuleID: "example-rule", Inspector: string(inspector.RegexInspectorName)}
 				},
 				mockGetDetectionEvents: func() waf.DetectionEvents {
@@ -81,7 +82,7 @@ func TestWafOperation_Run(t *testing.T) {
 		},
 		"when inspector return nil (not detected)": {
 			arrange: arrange{
-				mockInspectFunc: func(data inspector.InspectData) error {
+				mockInspectFunc: func(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) error {
 					return nil
 				},
 				mockGetDetectionEvents: func() waf.DetectionEvents {
@@ -92,7 +93,7 @@ func TestWafOperation_Run(t *testing.T) {
 		},
 		"when inspector return error (not blocked error)": {
 			arrange: arrange{
-				mockInspectFunc: func(data inspector.InspectData) error {
+				mockInspectFunc: func(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) error {
 					return fmt.Errorf("something error")
 				},
 				mockGetDetectionEvents: func() waf.DetectionEvents {

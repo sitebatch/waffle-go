@@ -3,7 +3,6 @@ package inspector_test
 import (
 	"testing"
 
-	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/inspector/types"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +18,7 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 
 	testCases := map[string]struct {
 		arrange
-		detected bool
+		suspiciousPayload string
 	}{
 		"when match return detection error": {
 			arrange: arrange{
@@ -37,7 +36,7 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 					},
 				},
 			},
-			detected: true,
+			suspiciousPayload: "q=/etc/passwd",
 		},
 		"when not match return nil": {
 			arrange: arrange{
@@ -55,7 +54,6 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 					},
 				},
 			},
-			detected: false,
 		},
 		"when multiple targets": {
 			arrange: arrange{
@@ -76,23 +74,20 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 					},
 				},
 			},
-			detected: true,
+			suspiciousPayload: "q=/etc/passwd",
 		},
 	}
 
-	for name, tc := range testCases {
-		tc := tc
-
+	for name, tt := range testCases {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			matchListInspector := inspector.NewMatchListInspector()
-			err := matchListInspector.Inspect(tc.arrange.inspectData, tc.arrange.inspectorArgs)
+			suspicious, err := matchListInspector.Inspect(tt.arrange.inspectData, tt.arrange.inspectorArgs)
 
-			if tc.detected {
-				assert.Error(t, err)
-				var detectionError *action.DetectionError
-				assert.ErrorAs(t, err, &detectionError)
+			if tt.suspiciousPayload != "" {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.suspiciousPayload, suspicious.Payload)
 				return
 			}
 

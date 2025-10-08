@@ -25,7 +25,7 @@ func NewGraphqlSecurity(rootOp operation.Operation) (listener.Listener, error) {
 func (graphqlSec *GraphqlSecurity) OnRequest(op *graphql.GraphqlRequestHandlerOperation, args graphql.GraphqlRequestHandlerOperationArg) {
 	op.Run(
 		op,
-		*inspector.NewInspectDataBuilder().
+		*inspector.NewInspectDataBuilder(op.OperationContext()).
 			WithGraphQLRequestRawQuery(args.RawQuery).
 			WithGraphQLRequestOperationName(args.OperationName).
 			WithGraphQLRequestVariables(args.Variables).

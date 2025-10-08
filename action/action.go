@@ -2,6 +2,25 @@ package action
 
 import "fmt"
 
+type HttpRequest struct {
+	URL      string
+	Headers  map[string][]string
+	Body     map[string][]string
+	ClientIP string
+}
+
+type DetectionContext struct {
+	Meta        map[string]string
+	HttpRequest *HttpRequest
+}
+
+type DetectionEvent struct {
+	RuleID    string
+	Inspector string
+	Message   string
+	Context   DetectionContext
+}
+
 type DetectionError struct {
 	Reason string
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/sitebatch/waffle-go/internal/emitter/http/parser"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
+	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/log"
 	"github.com/sitebatch/waffle-go/internal/operation"
 )
@@ -35,13 +36,11 @@ func (*HTTPRequestHandlerOperationResult) IsResultOf(*HTTPRequestHandlerOperatio
 func StartHTTPRequestHandlerOperation(ctx context.Context, args HTTPRequestHandlerOperationArg) (*HTTPRequestHandlerOperation, context.Context) {
 	wafOp, found := operation.FindOperation[waf.WafOperation](ctx)
 	if !found {
-		wafOp, ctx = waf.StartWafOperation(ctx, waf.WithOperationContext(waf.WafOperationContext{
-			HttpRequest: &waf.HttpRequest{
-				URL:      args.URL,
-				Headers:  args.Headers,
-				Body:     args.Body,
-				ClientIP: args.ClientIP,
-			},
+		wafOp, ctx = waf.StartWafOperation(ctx, waf.WithHttpRequstContext(wafcontext.HttpRequest{
+			URL:      args.URL,
+			Headers:  args.Headers,
+			Body:     args.Body,
+			ClientIP: args.ClientIP,
 		}))
 	}
 

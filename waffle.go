@@ -5,6 +5,7 @@ import (
 
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
+	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/listener"
 	"github.com/sitebatch/waffle-go/internal/listener/account_takeover"
 	"github.com/sitebatch/waffle-go/internal/listener/graphql"
@@ -121,6 +122,6 @@ func SetUser(ctx context.Context, userID string) error {
 		return nil
 	}
 
-	op.SetMeta(string(waf.UserID), userID)
+	op.SetMeta(string(wafcontext.UserID), userID)
 	return nil
 }

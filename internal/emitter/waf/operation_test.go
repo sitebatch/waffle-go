@@ -37,15 +37,6 @@ func TestSetMeta(t *testing.T) {
 		"can set Metadata in Operation": {
 			op: &waf.WafOperation{
 				Operation: operation.NewOperation(nil),
-				WafOperationContext: &waf.WafOperationContext{
-					HttpRequest: &waf.HttpRequest{},
-				},
-			},
-			want: map[string]string{"key": "value"},
-		},
-		"can set Metadata in Operation when waf operation context is nil": {
-			op: &waf.WafOperation{
-				Operation: operation.NewOperation(nil),
 			},
 			want: map[string]string{"key": "value"},
 		},
@@ -125,7 +116,7 @@ func TestWafOperation_Run(t *testing.T) {
 			}
 
 			wafop.Run(op, inspector.InspectData{
-				Target: inspector.NewInspectDataBuilder().Target,
+				Target: inspector.NewInspectDataBuilder(wafop.OperationContext()).Target,
 			})
 
 			assert.Equal(t, tt.block, wafop.IsBlock())

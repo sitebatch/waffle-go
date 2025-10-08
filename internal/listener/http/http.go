@@ -26,7 +26,7 @@ func (httpSec *HTTPSecurity) OnRequest(op *httpEmitter.HTTPRequestHandlerOperati
 	op.Run(
 		op,
 		*inspector.
-			NewInspectDataBuilder().
+			NewInspectDataBuilder(op.OperationContext()).
 			WithHTTPRequestURL(args.URL).
 			WithHTTPRequestHeader(args.Headers).
 			WithHTTPRequestQuery(args.QueryValues).

@@ -36,9 +36,11 @@ func TestSetMeta(t *testing.T) {
 		want map[string]string
 	}{
 		"can set Metadata in Operation": {
-			op: &waf.WafOperation{
-				Operation: operation.NewOperation(nil),
-			},
+			op: waf.NewWafOperation(
+				operation.NewOperation(nil),
+				nil,
+				wafcontext.NewWafOperationContext(),
+			),
 			want: map[string]string{"key": "value"},
 		},
 	}
@@ -48,7 +50,7 @@ func TestSetMeta(t *testing.T) {
 			t.Parallel()
 
 			tt.op.SetMeta("key", "value")
-			assert.Equal(t, tt.want, tt.op.OperationContext().Meta)
+			assert.Equal(t, tt.want, tt.op.OperationContext().GetMeta())
 		})
 	}
 }

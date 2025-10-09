@@ -33,17 +33,17 @@ func (m *MockInspector) Inspect(data inspector.InspectData, args inspector.Inspe
 	return nil, nil
 }
 
-type NothingInspector struct{}
+type NopInspector struct{}
 
-func (n *NothingInspector) Name() inspector.InspectorName {
-	return inspector.InspectorName("nothing")
+func (n *NopInspector) Name() inspector.InspectorName {
+	return inspector.InspectorName("nop")
 }
 
-func (n *NothingInspector) IsSupportTarget(target inspector.InspectTarget) bool {
+func (n *NopInspector) IsSupportTarget(target inspector.InspectTarget) bool {
 	return true
 }
 
-func (n *NothingInspector) Inspect(data inspector.InspectData, args inspector.InspectorArgs) (*inspector.SuspiciousResult, error) {
+func (n *NopInspector) Inspect(data inspector.InspectData, args inspector.InspectorArgs) (*inspector.SuspiciousResult, error) {
 	return nil, nil
 }
 
@@ -78,15 +78,12 @@ func TestWAF(t *testing.T) {
 					},
 				},
 			},
-			wafOpCtx: &wafcontext.WafOperationContext{
-				Meta: map[string]string{},
-				HttpRequest: &wafcontext.HttpRequest{
-					URL:      "http://malicious.com",
-					Headers:  http.Header{"Host": []string{"malicious.com"}},
-					Body:     map[string][]string{},
-					ClientIP: "10.0.1.1",
-				},
-			},
+			wafOpCtx: wafcontext.NewWafOperationContext(wafcontext.WithHttpRequstContext(wafcontext.HttpRequest{
+				URL:      "http://malicious.com",
+				Headers:  http.Header{"Host": []string{"malicious.com"}},
+				Body:     map[string][]string{},
+				ClientIP: "10.0.1.1",
+			})),
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]types.InspectTargetValue{
 					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://malicious.com"),
@@ -112,15 +109,12 @@ func TestWAF(t *testing.T) {
 					},
 				},
 			},
-			wafOpCtx: &wafcontext.WafOperationContext{
-				Meta: map[string]string{},
-				HttpRequest: &wafcontext.HttpRequest{
-					URL:      "http://malicious.com",
-					Headers:  http.Header{"Host": []string{"malicious.com"}},
-					Body:     map[string][]string{},
-					ClientIP: "10.0.1.1",
-				},
-			},
+			wafOpCtx: wafcontext.NewWafOperationContext(wafcontext.WithHttpRequstContext(wafcontext.HttpRequest{
+				URL:      "http://malicious.com",
+				Headers:  http.Header{"Host": []string{"malicious.com"}},
+				Body:     map[string][]string{},
+				ClientIP: "10.0.1.1",
+			})),
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]types.InspectTargetValue{
 					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://malicious.com"),
@@ -144,15 +138,12 @@ func TestWAF(t *testing.T) {
 					},
 				},
 			},
-			wafOpCtx: &wafcontext.WafOperationContext{
-				Meta: map[string]string{},
-				HttpRequest: &wafcontext.HttpRequest{
-					URL:      "http://example.com",
-					Headers:  http.Header{"Host": []string{"example.com"}},
-					Body:     map[string][]string{},
-					ClientIP: "10.0.1.1",
-				},
-			},
+			wafOpCtx: wafcontext.NewWafOperationContext(wafcontext.WithHttpRequstContext(wafcontext.HttpRequest{
+				URL:      "http://example.com",
+				Headers:  http.Header{"Host": []string{"example.com"}},
+				Body:     map[string][]string{},
+				ClientIP: "10.0.1.1",
+			})),
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]types.InspectTargetValue{
 					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://example.com"),
@@ -180,15 +171,12 @@ func TestWAF(t *testing.T) {
 					},
 				},
 			},
-			wafOpCtx: &wafcontext.WafOperationContext{
-				Meta: map[string]string{},
-				HttpRequest: &wafcontext.HttpRequest{
-					URL:      "http://example.com",
-					Headers:  http.Header{"Host": []string{"example.com"}},
-					Body:     map[string][]string{},
-					ClientIP: "10.0.1.1",
-				},
-			},
+			wafOpCtx: wafcontext.NewWafOperationContext(wafcontext.WithHttpRequstContext(wafcontext.HttpRequest{
+				URL:      "http://example.com",
+				Headers:  http.Header{"Host": []string{"example.com"}},
+				Body:     map[string][]string{},
+				ClientIP: "10.0.1.1",
+			})),
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]types.InspectTargetValue{
 					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://example.com"),
@@ -213,15 +201,12 @@ func TestWAF(t *testing.T) {
 					},
 				},
 			},
-			wafOpCtx: &wafcontext.WafOperationContext{
-				Meta: map[string]string{},
-				HttpRequest: &wafcontext.HttpRequest{
-					URL:      "http://malicious.com",
-					Headers:  http.Header{"Host": []string{"malicious.com"}},
-					Body:     map[string][]string{},
-					ClientIP: "10.0.1.1",
-				},
-			},
+			wafOpCtx: wafcontext.NewWafOperationContext(wafcontext.WithHttpRequstContext(wafcontext.HttpRequest{
+				URL:      "http://malicious.com",
+				Headers:  http.Header{"Host": []string{"malicious.com"}},
+				Body:     map[string][]string{},
+				ClientIP: "10.0.1.1",
+			})),
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]types.InspectTargetValue{
 					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://malicious.com"),
@@ -246,15 +231,12 @@ func TestWAF(t *testing.T) {
 					},
 				},
 			},
-			wafOpCtx: &wafcontext.WafOperationContext{
-				Meta: map[string]string{},
-				HttpRequest: &wafcontext.HttpRequest{
-					URL:      "http://example.com",
-					Headers:  http.Header{"Host": []string{"malicious.com"}},
-					Body:     map[string][]string{},
-					ClientIP: "10.0.1.1",
-				},
-			},
+			wafOpCtx: wafcontext.NewWafOperationContext(wafcontext.WithHttpRequstContext(wafcontext.HttpRequest{
+				URL:      "http://example.com",
+				Headers:  http.Header{"Host": []string{"malicious.com"}},
+				Body:     map[string][]string{},
+				ClientIP: "10.0.1.1",
+			})),
 			inspectData: inspector.InspectData{
 				Target: map[inspector.InspectTarget]types.InspectTargetValue{
 					inspector.InspectTargetHttpRequestHeader: types.NewKeyValues(http.Header{
@@ -277,7 +259,7 @@ func TestWAF(t *testing.T) {
 
 			w := waf.NewWAF(rules)
 			w.RegisterInspector("mock", &MockInspector{})
-			w.RegisterInspector("nothing", &NothingInspector{})
+			w.RegisterInspector("nothing", &NopInspector{})
 
 			err := w.Inspect(tt.wafOpCtx, tt.inspectData)
 

@@ -16,6 +16,8 @@ type DetectionEvents map[string]ruleConditionResult
 
 type WAF interface {
 	RegisterInspector(name string, inspector inspector.Inspector)
+	// Inspect inspects the incoming data against the WAF rules.
+	// If any rule triggers a block action, it returns an *action.BlockError.
 	Inspect(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) error
 	GetDetectionEvents() DetectionEvents
 }
@@ -63,7 +65,6 @@ func (w *waf) GetDetectionEvents() DetectionEvents {
 	return w.detectionEvents
 }
 
-// Inspect checks the data against the rules and returns an error if the data is blocked.
 func (w *waf) Inspect(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) error {
 	for _, rule := range w.rules.Rules {
 		if err := w.inspect(wafOpCtx, rule, data); err != nil {

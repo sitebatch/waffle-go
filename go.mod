@@ -13,7 +13,7 @@ require (
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
 	github.com/vektah/gqlparser/v2 v2.5.23
-	github.com/wasilibs/go-re2 v1.9.0
+	github.com/wasilibs/go-re2 v1.10.0
 	github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2
 	golang.org/x/time v0.11.0
 	gorm.io/driver/sqlite v1.5.7

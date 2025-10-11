@@ -49,7 +49,7 @@ func StartHTTPRequestHandlerOperation(ctx context.Context, args HTTPRequestHandl
 		WafOperation: wafOp,
 	}
 
-	return op, operation.StartAndRegisterOperation(ctx, op, args)
+	return op, operation.StartAndSetOperation(ctx, op, args)
 }
 
 func (op *HTTPRequestHandlerOperation) Finish(res *HTTPRequestHandlerOperationResult) {

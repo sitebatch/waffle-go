@@ -70,7 +70,7 @@ func StartWafOperation(ctx context.Context, opts ...Option) (*WafOperation, cont
 		opt(op)
 	}
 
-	return op, operation.StartAndRegisterOperation(ctx, op, WafOperationArg{})
+	return op, operation.SetOperation(ctx, op)
 }
 
 // Run inspects the request data and blocks the request if it violates the WAF rules.

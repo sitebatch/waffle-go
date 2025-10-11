@@ -40,6 +40,7 @@ func NewDeetectionEvent(ruleID, inspector, message, payload string, context *Det
 		RuleID:    ruleID,
 		Inspector: inspector,
 		Message:   message,
+		Payload:   payload,
 		Context:   context,
 	}
 }

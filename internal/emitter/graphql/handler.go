@@ -43,7 +43,7 @@ func StartGraphQLRequestHandlerOperation(ctx context.Context, args GraphqlReques
 		WafOperation: wafop,
 	}
 
-	return op, operation.StartAndRegisterOperation(ctx, op, args)
+	return op, operation.StartAndSetOperation(ctx, op, args)
 }
 
 func (op *GraphqlRequestHandlerOperation) Finish(res *GraphqlRequestHandlerOperationResult) {

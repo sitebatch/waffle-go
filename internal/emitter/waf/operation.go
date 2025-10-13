@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
@@ -19,13 +20,17 @@ type WafOperation struct {
 
 	Waf                 WAF
 	wafOperationContext *wafcontext.WafOperationContext
-	blockErr            *action.BlockError
+
+	eventRecorder *EventRecorder
+	blockErr      *action.BlockError
+
+	mu sync.Mutex
 }
 
 type WafOperationArg struct{}
 type WafOperationResult struct {
 	BlockErr        *action.BlockError
-	DetectionEvents DetectionEvents
+	DetectionEvents []DetectionEvent
 }
 
 func (WafOperationArg) IsArgOf(*WafOperation)       {}
@@ -55,13 +60,9 @@ func WithHttpRequstContext(req wafcontext.HttpRequest) Option {
 	}
 }
 
-// StartWafOperation creates a new WafOperation and returns it with the context.
-// This operation must be created at the top level of processing HTTP requests and propagated to subsequent processing.
-func StartWafOperation(ctx context.Context, opts ...Option) (*WafOperation, context.Context) {
-	if !operation.IsRootOperationInitialized() {
-		panic("waffle is not initialized, forgot to call waffle.Start()?")
-	}
-
+// InitializeWafOperation initializes a WAF operation and sets it in the context.
+// The returned context contains the initialized WAF operation.
+func InitializeWafOperation(ctx context.Context, opts ...Option) (*WafOperation, context.Context) {
 	parent, _ := operation.FindOperationFromContext(ctx)
 	wafCtx := wafcontext.NewWafOperationContext()
 	op := NewWafOperation(parent, NewWAF(rule.LoadedRule), wafCtx)
@@ -75,7 +76,7 @@ func StartWafOperation(ctx context.Context, opts ...Option) (*WafOperation, cont
 
 // Run inspects the request data and blocks the request if it violates the WAF rules.
 func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.InspectData) {
-	err := wafOp.Waf.Inspect(wafOp.OperationContext(), inspectData)
+	events, err := wafOp.Waf.Inspect(wafOp.OperationContext(), inspectData)
 	if err != nil {
 		var blockError *action.BlockError
 		if errors.As(err, &blockError) {
@@ -87,11 +88,7 @@ func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.Ins
 		log.Error("failed to inspect", "error", err)
 	}
 
-	for ruleID, event := range wafOp.Waf.GetDetectionEvents() {
-		for inspector, result := range event {
-			wafOp.log("detect", fmt.Sprintf("Threat detected: %s", result.Message), ruleID, inspector)
-		}
-	}
+	wafOp.snapshot(op, events)
 }
 
 // IsBlock returns true if the request should be blocked.
@@ -100,9 +97,17 @@ func (wafOp *WafOperation) IsBlock() bool {
 }
 
 // FinishInspect finishes the inspection and sets the result.
-func (wafOp *WafOperation) FinishInspect(res *WafOperationResult) {
+func (wafOp *WafOperation) FinishInspect(op operation.Operation, res *WafOperationResult) {
+	wafOp.mu.Lock()
+	defer wafOp.mu.Unlock()
+
 	res.BlockErr = wafOp.blockErr
-	res.DetectionEvents = wafOp.Waf.GetDetectionEvents()
+
+	events := wafOp.eventRecorder.Load()
+	if err := GetExporter().Export(context.Background(), events); err != nil {
+		log.Error("failed to export WAF event", "error", err)
+	}
+	wafOp.eventRecorder.Clear()
 }
 
 // SetMeta sets metadata to the WAF operation context.
@@ -111,7 +116,7 @@ func (wafOp *WafOperation) SetMeta(key string, value string) {
 }
 
 // OperationContext returns the WAF operation context.
-func (wafOp WafOperation) OperationContext() *wafcontext.WafOperationContext {
+func (wafOp *WafOperation) OperationContext() *wafcontext.WafOperationContext {
 	return wafOp.wafOperationContext
 }
 
@@ -139,4 +144,16 @@ func (wafOp *WafOperation) log(action string, msg string, ruleID string, inspect
 	default:
 		log.Error("unknown action", "action", action)
 	}
+}
+
+func (wafOp *WafOperation) snapshot(op operation.Operation, events []DetectionEvent) {
+	wafOp.mu.Lock()
+	defer wafOp.mu.Unlock()
+
+	s := &snapshot{
+		events:    events,
+		operation: op,
+	}
+
+	wafOp.eventRecorder.Store(s)
 }

@@ -32,7 +32,7 @@ type Inspector interface {
 	// Inspect inspects the given data
 	// Returns SuspiciousResult if the inspected data is determined to be an attack, otherwise returns nil
 	// If an error occurs during inspection, returns an error
-	Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*SuspiciousResult, error)
+	Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error)
 	// IsSupportTarget returns whether the inspector supports the target
 	IsSupportTarget(target InspectTarget) bool
 }
@@ -46,8 +46,8 @@ type InspectTargetOptions struct {
 	Params []string
 }
 
-// SuspiciousResult represents the result of an inspection that is deemed suspicious
-type SuspiciousResult struct {
+// InspectResult represents the result of an inspection
+type InspectResult struct {
 	Payload string // the payload deemed suspicious
 	Message string // message describing why it is suspicious
 }

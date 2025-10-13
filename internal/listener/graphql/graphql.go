@@ -35,7 +35,7 @@ func (graphqlSec *GraphqlSecurity) OnRequest(op *graphql.GraphqlRequestHandlerOp
 
 func (graphqlSec *GraphqlSecurity) OnFinish(op *graphql.GraphqlRequestHandlerOperation, res *graphql.GraphqlRequestHandlerOperationResult) {
 	result := &waf.WafOperationResult{}
-	op.FinishInspect(result)
+	op.FinishInspect(op, result)
 
 	if result.IsBlock() {
 		res.BlockErr = result.BlockErr

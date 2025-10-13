@@ -35,7 +35,7 @@ func StartGraphQLRequestHandlerOperation(ctx context.Context, args GraphqlReques
 	if parentOp, ok := parent.(*http.HTTPRequestHandlerOperation); ok {
 		wafop = parentOp.WafOperation
 	} else {
-		wafop, _ = waf.StartWafOperation(ctx)
+		wafop, _ = waf.InitializeWafOperation(ctx)
 	}
 
 	op := &GraphqlRequestHandlerOperation{

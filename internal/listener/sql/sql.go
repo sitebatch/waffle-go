@@ -28,7 +28,7 @@ func (sqlSec *SQLSecurity) OnQueryOrExec(op *sql.SQLOperation, args sql.SQLOpera
 
 func (sqlSec *SQLSecurity) OnFinish(op *sql.SQLOperation, res *sql.SQLOperationResult) {
 	result := &waf.WafOperationResult{}
-	op.FinishInspect(result)
+	op.FinishInspect(op, result)
 
 	if result.IsBlock() {
 		res.BlockErr = result.BlockErr

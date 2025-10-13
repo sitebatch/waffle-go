@@ -111,7 +111,7 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 			t.Parallel()
 
 			var err error
-			var suspicious *inspector.SuspiciousResult
+			var suspicious *inspector.InspectResult
 
 			for i := 0; i < tt.reqSize; i++ {
 				i := inspector.NewAccountTakeoverInspector()

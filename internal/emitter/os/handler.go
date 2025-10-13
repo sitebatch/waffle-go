@@ -39,7 +39,7 @@ func ProtectFileOperation(ctx context.Context, path string) error {
 	if parentOp, ok := parent.(*http.HTTPRequestHandlerOperation); ok {
 		wafop = parentOp.WafOperation
 	} else {
-		wafop, _ = waf.StartWafOperation(ctx)
+		wafop, _ = waf.InitializeWafOperation(ctx)
 	}
 
 	op := &FileOperation{

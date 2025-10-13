@@ -28,7 +28,7 @@ func (fileSec *FileSecurity) OnOpen(op *os.FileOperation, args os.FileOperationA
 
 func (fileSec *FileSecurity) OnFinish(op *os.FileOperation, res *os.FileOperationResult) {
 	result := &waf.WafOperationResult{}
-	op.FinishInspect(result)
+	op.FinishInspect(op, result)
 
 	if result.IsBlock() {
 		res.BlockErr = result.BlockErr

@@ -30,7 +30,7 @@ func (s *AccountTakeoverSecurity) OnLogin(op *account_takeover.ProtectLoginOpera
 
 func (s *AccountTakeoverSecurity) OnFinish(op *account_takeover.ProtectLoginOperation, res *account_takeover.ProtectLoginOperationResult) {
 	result := &waf.WafOperationResult{}
-	op.FinishInspect(result)
+	op.FinishInspect(op, result)
 
 	if result.IsBlock() {
 		res.BlockErr = result.BlockErr

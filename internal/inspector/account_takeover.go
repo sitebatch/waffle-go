@@ -30,7 +30,7 @@ func (i *AccountTakeoverInspector) IsSupportTarget(target InspectTarget) bool {
 	return target == InspectTargetAccountTakeover
 }
 
-func (i *AccountTakeoverInspector) Inspect(inspectData InspectData, args InspectorArgs) (*SuspiciousResult, error) {
+func (i *AccountTakeoverInspector) Inspect(inspectData InspectData, args InspectorArgs) (*InspectResult, error) {
 	inspectorArgs, ok := args.(*AccountTakeoverInspectorArgs)
 	if !ok {
 		return nil, errors.New("invalid args, not AccountTakeoverInspectorArgs")
@@ -49,7 +49,7 @@ func (i *AccountTakeoverInspector) Inspect(inspectData InspectData, args Inspect
 	}
 
 	if err := account_takeover.IsLimit(clientIP[0], userID[0], inspectorArgs.LoginRateLimitPerSecond); err != nil {
-		return &SuspiciousResult{
+		return &InspectResult{
 			Payload: fmt.Sprintf("client_ip: %s, user_id: %s", clientIP[0], userID[0]),
 			Message: err.Error(),
 		}, nil

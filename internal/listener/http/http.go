@@ -38,7 +38,7 @@ func (httpSec *HTTPSecurity) OnRequest(op *httpEmitter.HTTPRequestHandlerOperati
 
 func (httpSec *HTTPSecurity) OnFinish(op *httpEmitter.HTTPRequestHandlerOperation, res *httpEmitter.HTTPRequestHandlerOperationResult) {
 	result := &waf.WafOperationResult{}
-	op.FinishInspect(result)
+	op.FinishInspect(op, result)
 
 	if result.IsBlock() {
 		res.BlockErr = result.BlockErr

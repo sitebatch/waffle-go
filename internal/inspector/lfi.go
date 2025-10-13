@@ -26,7 +26,7 @@ func (i *LFIInspector) IsSupportTarget(target InspectTarget) bool {
 	return target == InspectTargetOSFileOpen
 }
 
-func (i *LFIInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*SuspiciousResult, error) {
+func (i *LFIInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
 	inspectValue := inspectData.Target[InspectTargetOSFileOpen]
 
 	if inspectValue == nil {
@@ -36,14 +36,14 @@ func (i *LFIInspector) Inspect(inspectData InspectData, inspectorArgs InspectorA
 	filePath := inspectValue.GetValue()
 
 	if lfi.IsAttemptDirectoryTraversal(filePath) {
-		return &SuspiciousResult{
+		return &InspectResult{
 			Payload: filePath,
 			Message: fmt.Sprintf("detected attempt directory traversal: %s", filePath),
 		}, nil
 	}
 
 	if lfi.IsSensitiveFilePath(filePath) {
-		return &SuspiciousResult{
+		return &InspectResult{
 			Payload: filePath,
 			Message: fmt.Sprintf("detected sensitive file path access: %s", filePath),
 		}, nil

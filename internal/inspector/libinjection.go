@@ -51,7 +51,7 @@ func (r *LibInjectionXSSInspector) IsSupportTarget(target InspectTarget) bool {
 	return true
 }
 
-func (r *LibInjectionSQLIInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*SuspiciousResult, error) {
+func (r *LibInjectionSQLIInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
 	args, ok := inspectorArgs.(*LibInjectionSQLIInspectorArgs)
 	if !ok {
 		return nil, errors.New("invalid args, not LibInjectionSQLIInspectorArgs")
@@ -69,7 +69,7 @@ func (r *LibInjectionSQLIInspector) Inspect(inspectData InspectData, inspectorAr
 		for _, value := range values {
 			err := libinjection.IsSQLiPayload(value)
 			if err != nil {
-				return &SuspiciousResult{
+				return &InspectResult{
 					Payload: value,
 					Message: fmt.Sprintf("detected sqli payload: %s", err),
 				}, nil
@@ -80,7 +80,7 @@ func (r *LibInjectionSQLIInspector) Inspect(inspectData InspectData, inspectorAr
 	return nil, nil
 }
 
-func (r *LibInjectionXSSInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*SuspiciousResult, error) {
+func (r *LibInjectionXSSInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
 	args, ok := inspectorArgs.(*LibInjectionXSSInspectorArgs)
 	if !ok {
 		return nil, errors.New("invalid args, not LibInjectionXSSInspectorArgs")
@@ -98,7 +98,7 @@ func (r *LibInjectionXSSInspector) Inspect(inspectData InspectData, inspectorArg
 		for _, value := range values {
 			err := libinjection.IsXSSPayload(value)
 			if err != nil {
-				return &SuspiciousResult{
+				return &InspectResult{
 					Payload: value,
 					Message: fmt.Sprintf("detected xss payload: %s", err),
 				}, nil

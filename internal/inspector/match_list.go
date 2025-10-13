@@ -32,7 +32,7 @@ func (m *MatchListInspector) Name() InspectorName {
 	return MatchListInspectorName
 }
 
-func (m *MatchListInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*SuspiciousResult, error) {
+func (m *MatchListInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
 	args, ok := inspectorArgs.(*MatchListInspectorArgs)
 	if !ok {
 		return nil, errors.New("invalid args, not MatchListInspectorArgs")
@@ -56,7 +56,7 @@ func (m *MatchListInspector) Inspect(inspectData InspectData, inspectorArgs Insp
 				}
 
 				if re.MatchString(value) {
-					return &SuspiciousResult{
+					return &InspectResult{
 						Payload: value,
 						Message: fmt.Sprintf("Suspicious pattern detected: '%s' matches regex '%s'", value, listValue),
 					}, nil

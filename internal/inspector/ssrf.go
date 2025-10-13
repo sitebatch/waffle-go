@@ -23,7 +23,7 @@ func (i *SSRFInspector) IsSupportTarget(target InspectTarget) bool {
 	return target == InspectTargetHttpClientRequestURL
 }
 
-func (i *SSRFInspector) Inspect(inspectData InspectData, args InspectorArgs) (*SuspiciousResult, error) {
+func (i *SSRFInspector) Inspect(inspectData InspectData, args InspectorArgs) (*InspectResult, error) {
 	inspectValue := inspectData.Target[InspectTargetHttpClientRequestURL]
 	if inspectValue == nil {
 		return nil, nil
@@ -32,7 +32,7 @@ func (i *SSRFInspector) Inspect(inspectData InspectData, args InspectorArgs) (*S
 	url := inspectValue.GetValue()
 
 	if err := ssrf.IsCloudMetadataServiceURL(url); err != nil {
-		return &SuspiciousResult{
+		return &InspectResult{
 			Payload: url,
 			Message: err.Error(),
 		}, nil

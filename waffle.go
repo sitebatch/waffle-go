@@ -116,6 +116,16 @@ func Start(opts ...Options) {
 	log.Info("waffle: started")
 }
 
+func SetExporterProvider(name waf.ExporterName) {
+	switch name {
+	case waf.ExporterNameStdout:
+		exporter := waf.NewStdoutExporter()
+		waf.SetExporter(exporter)
+	default:
+		log.Error("unknown exporter name: %s", name)
+	}
+}
+
 func SetUser(ctx context.Context, userID string) error {
 	op, found := operation.FindOperation[waf.WafOperation](ctx)
 	if !found {

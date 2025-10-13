@@ -32,7 +32,7 @@ func (r *RegexInspector) IsSupportTarget(target InspectTarget) bool {
 	return true
 }
 
-func (r *RegexInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*SuspiciousResult, error) {
+func (r *RegexInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
 	args, ok := inspectorArgs.(*RegexInspectorArgs)
 	if !ok {
 		return nil, errors.New("invalid args, not RegexInspectorArgs")
@@ -55,7 +55,7 @@ func (r *RegexInspector) Inspect(inspectData InspectData, inspectorArgs Inspecto
 			}
 
 			if matched {
-				return &SuspiciousResult{
+				return &InspectResult{
 					Payload: value,
 					Message: fmt.Sprintf("Suspicious pattern detected: '%s' matches regex '%s'", value, args.Regex),
 				}, nil

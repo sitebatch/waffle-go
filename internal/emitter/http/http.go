@@ -36,7 +36,7 @@ func (*HTTPRequestHandlerOperationResult) IsResultOf(*HTTPRequestHandlerOperatio
 func StartHTTPRequestHandlerOperation(ctx context.Context, args HTTPRequestHandlerOperationArg) (*HTTPRequestHandlerOperation, context.Context) {
 	wafOp, found := operation.FindOperation[waf.WafOperation](ctx)
 	if !found {
-		wafOp, ctx = waf.StartWafOperation(ctx, waf.WithHttpRequstContext(wafcontext.HttpRequest{
+		wafOp, ctx = waf.InitializeWafOperation(ctx, waf.WithHttpRequstContext(wafcontext.HttpRequest{
 			URL:      args.URL,
 			Headers:  args.Headers,
 			Body:     args.Body,

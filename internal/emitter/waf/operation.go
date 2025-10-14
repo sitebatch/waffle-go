@@ -46,6 +46,7 @@ func NewWafOperation(parent operation.Operation, waf WAF, wafOpCtx *wafcontext.W
 	return &WafOperation{
 		Operation:           operation.NewOperation(parent),
 		Waf:                 waf,
+		eventRecorder:       NewEventRecorder(),
 		wafOperationContext: wafOpCtx,
 	}
 }
@@ -76,7 +77,7 @@ func InitializeWafOperation(ctx context.Context, opts ...Option) (*WafOperation,
 
 // Run inspects the request data and blocks the request if it violates the WAF rules.
 func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.InspectData) {
-	events, err := wafOp.Waf.Inspect(wafOp.OperationContext(), inspectData)
+	events, err := wafOp.Waf.Inspect(inspectData)
 	if err != nil {
 		var blockError *action.BlockError
 		if errors.As(err, &blockError) {
@@ -88,7 +89,9 @@ func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.Ins
 		log.Error("failed to inspect", "error", err)
 	}
 
-	wafOp.snapshot(op, events)
+	if len(events) > 0 {
+		wafOp.snapshot(op, events)
+	}
 }
 
 // IsBlock returns true if the request should be blocked.
@@ -104,10 +107,12 @@ func (wafOp *WafOperation) FinishInspect(op operation.Operation, res *WafOperati
 	res.BlockErr = wafOp.blockErr
 
 	events := wafOp.eventRecorder.Load()
-	if err := GetExporter().Export(context.Background(), events); err != nil {
-		log.Error("failed to export WAF event", "error", err)
+	if events != nil {
+		if err := GetExporter().Export(context.Background(), events); err != nil {
+			log.Error("failed to export WAF event", "error", err)
+		}
+		wafOp.eventRecorder.Clear()
 	}
-	wafOp.eventRecorder.Clear()
 }
 
 // SetMeta sets metadata to the WAF operation context.

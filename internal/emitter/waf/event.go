@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
+	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/operation"
 	"github.com/sitebatch/waffle-go/internal/rule"
 )
@@ -30,23 +31,25 @@ type DetectionEvent struct {
 
 	Rule      rule.Rule
 	Inspector string
+	InspectAt inspector.InspectTarget
 	Message   string
 	Payload   string
 
-	// Time is the time when the event was detected.
-	Time time.Time
+	// DetectedAt is the time when the event was detected.
+	DetectedAt time.Time
 }
 
-func NewDetectionEvent(wafOpCtx *wafcontext.WafOperationContext, rule rule.Rule, inspector, message, payload string) DetectionEvent {
+func NewDetectionEvent(wafOpCtx *wafcontext.WafOperationContext, result EvalResult) DetectionEvent {
 	context := NewDetectionContext(wafOpCtx)
 
 	return DetectionEvent{
-		Context:   context,
-		Rule:      rule,
-		Inspector: inspector,
-		Message:   message,
-		Payload:   payload,
-		Time:      time.Now(),
+		Context:    context,
+		Rule:       result.Rule,
+		Inspector:  result.InspectBy,
+		InspectAt:  result.InspectResult.Target,
+		Message:    result.InspectResult.Message,
+		Payload:    result.InspectResult.Payload,
+		DetectedAt: time.Now(),
 	}
 }
 

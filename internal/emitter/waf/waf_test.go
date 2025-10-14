@@ -81,7 +81,15 @@ func TestWAF_Inspect(t *testing.T) {
 				"User-Agent": []string{"BadBot"},
 			}).Build(),
 			wantDetectionEvents: []waf.DetectionEvent{
-				waf.NewDetectionEvent(ctx, r.Rules[0], "regex", "Suspicious pattern detected: 'BadBot' matches regex 'BadBot'", "BadBot"),
+				waf.NewDetectionEvent(ctx, waf.EvalResult{
+					Rule:      r.Rules[0],
+					InspectBy: "regex",
+					InspectResult: &inspector.InspectResult{
+						Target:  inspector.InspectTargetHttpRequestHeader,
+						Message: "Suspicious pattern detected: 'BadBot' matches regex 'BadBot'",
+						Payload: "BadBot",
+					},
+				}),
 			},
 			wantError: nil,
 		},
@@ -90,7 +98,15 @@ func TestWAF_Inspect(t *testing.T) {
 				"User-Agent": []string{"EvilBot"},
 			}).Build(),
 			wantDetectionEvents: []waf.DetectionEvent{
-				waf.NewDetectionEvent(ctx, r.Rules[1], "regex", "Suspicious pattern detected: 'EvilBot' matches regex 'EvilBot'", "EvilBot"),
+				waf.NewDetectionEvent(ctx, waf.EvalResult{
+					Rule:      r.Rules[1],
+					InspectBy: "regex",
+					InspectResult: &inspector.InspectResult{
+						Target:  inspector.InspectTargetHttpRequestHeader,
+						Message: "Suspicious pattern detected: 'EvilBot' matches regex 'EvilBot'",
+						Payload: "EvilBot",
+					},
+				}),
 			},
 			wantError: &action.BlockError{
 				RuleID:    "2",
@@ -101,11 +117,11 @@ func TestWAF_Inspect(t *testing.T) {
 
 	for name, tt := range testCases {
 		t.Run(name, func(t *testing.T) {
-			detectionEvents, err := w.Inspect(ctx, tt.data)
+			detectionEvents, err := w.Inspect(tt.data)
 
 			assert.Equal(t, tt.wantError, err)
 
-			opt := cmpopts.IgnoreFields(waf.DetectionEvent{}, "Time")
+			opt := cmpopts.IgnoreFields(waf.DetectionEvent{}, "DetectedAt")
 			if diff := cmp.Diff(tt.wantDetectionEvents, detectionEvents, opt); diff != "" {
 				t.Errorf("detectionEvents (-want +got):\n%s", diff)
 			}

@@ -50,6 +50,7 @@ func (i *AccountTakeoverInspector) Inspect(inspectData InspectData, args Inspect
 
 	if err := account_takeover.IsLimit(clientIP[0], userID[0], inspectorArgs.LoginRateLimitPerSecond); err != nil {
 		return &InspectResult{
+			Target:  InspectTargetAccountTakeover,
 			Payload: fmt.Sprintf("client_ip: %s, user_id: %s", clientIP[0], userID[0]),
 			Message: err.Error(),
 		}, nil

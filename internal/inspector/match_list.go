@@ -38,13 +38,13 @@ func (m *MatchListInspector) Inspect(inspectData InspectData, inspectorArgs Insp
 		return nil, errors.New("invalid args, not MatchListInspectorArgs")
 	}
 
-	for _, target := range args.InspectTargetOptions {
-		if _, ok := inspectData.Target[InspectTarget(target.Target)]; !ok {
+	for _, opt := range args.InspectTargetOptions {
+		if _, ok := inspectData.Target[opt.Target]; !ok {
 			continue
 		}
 
-		values := inspectData.Target[InspectTarget(target.Target)].GetValues(
-			types.WithParamNames(target.Params),
+		values := inspectData.Target[opt.Target].GetValues(
+			types.WithParamNames(opt.Params),
 		)
 
 		for _, value := range values {
@@ -57,6 +57,7 @@ func (m *MatchListInspector) Inspect(inspectData InspectData, inspectorArgs Insp
 
 				if re.MatchString(value) {
 					return &InspectResult{
+						Target:  opt.Target,
 						Payload: value,
 						Message: fmt.Sprintf("Suspicious pattern detected: '%s' matches regex '%s'", value, listValue),
 					}, nil

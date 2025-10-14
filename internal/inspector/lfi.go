@@ -37,6 +37,7 @@ func (i *LFIInspector) Inspect(inspectData InspectData, inspectorArgs InspectorA
 
 	if lfi.IsAttemptDirectoryTraversal(filePath) {
 		return &InspectResult{
+			Target:  InspectTargetOSFileOpen,
 			Payload: filePath,
 			Message: fmt.Sprintf("detected attempt directory traversal: %s", filePath),
 		}, nil
@@ -44,6 +45,7 @@ func (i *LFIInspector) Inspect(inspectData InspectData, inspectorArgs InspectorA
 
 	if lfi.IsSensitiveFilePath(filePath) {
 		return &InspectResult{
+			Target:  InspectTargetOSFileOpen,
 			Payload: filePath,
 			Message: fmt.Sprintf("detected sensitive file path access: %s", filePath),
 		}, nil

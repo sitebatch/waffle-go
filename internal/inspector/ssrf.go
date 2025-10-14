@@ -33,6 +33,7 @@ func (i *SSRFInspector) Inspect(inspectData InspectData, args InspectorArgs) (*I
 
 	if err := ssrf.IsCloudMetadataServiceURL(url); err != nil {
 		return &InspectResult{
+			Target:  InspectTargetHttpClientRequestURL,
 			Payload: url,
 			Message: err.Error(),
 		}, nil

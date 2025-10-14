@@ -41,6 +41,7 @@ func (r *SQLiInspector) Inspect(inspectData InspectData, inspectorArgs Inspector
 
 	if isSQLi {
 		return &InspectResult{
+			Target:  InspectTargetSQLQuery,
 			Payload: query,
 			Message: "detected sql injection, because of where tautology",
 		}, nil
@@ -48,6 +49,7 @@ func (r *SQLiInspector) Inspect(inspectData InspectData, inspectorArgs Inspector
 
 	if err = sqli.IsQueryCommentInjection(query); err != nil {
 		return &InspectResult{
+			Target:  InspectTargetSQLQuery,
 			Payload: query,
 			Message: "detectd sql injection, because of query comment injection",
 		}, nil

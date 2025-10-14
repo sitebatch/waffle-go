@@ -57,19 +57,20 @@ func (r *LibInjectionSQLIInspector) Inspect(inspectData InspectData, inspectorAr
 		return nil, errors.New("invalid args, not LibInjectionSQLIInspectorArgs")
 	}
 
-	for _, target := range args.InspectTargetOptions {
-		if _, ok := inspectData.Target[InspectTarget(target.Target)]; !ok {
+	for _, opt := range args.InspectTargetOptions {
+		if _, ok := inspectData.Target[opt.Target]; !ok {
 			continue
 		}
 
-		values := inspectData.Target[InspectTarget(target.Target)].GetValues(
-			types.WithParamNames(target.Params),
+		values := inspectData.Target[opt.Target].GetValues(
+			types.WithParamNames(opt.Params),
 		)
 
 		for _, value := range values {
 			err := libinjection.IsSQLiPayload(value)
 			if err != nil {
 				return &InspectResult{
+					Target:  opt.Target,
 					Payload: value,
 					Message: fmt.Sprintf("detected sqli payload: %s", err),
 				}, nil
@@ -86,19 +87,20 @@ func (r *LibInjectionXSSInspector) Inspect(inspectData InspectData, inspectorArg
 		return nil, errors.New("invalid args, not LibInjectionXSSInspectorArgs")
 	}
 
-	for _, target := range args.InspectTargetOptions {
-		if _, ok := inspectData.Target[InspectTarget(target.Target)]; !ok {
+	for _, opt := range args.InspectTargetOptions {
+		if _, ok := inspectData.Target[opt.Target]; !ok {
 			continue
 		}
 
-		values := inspectData.Target[InspectTarget(target.Target)].GetValues(
-			types.WithParamNames(target.Params),
+		values := inspectData.Target[opt.Target].GetValues(
+			types.WithParamNames(opt.Params),
 		)
 
 		for _, value := range values {
 			err := libinjection.IsXSSPayload(value)
 			if err != nil {
 				return &InspectResult{
+					Target:  opt.Target,
 					Payload: value,
 					Message: fmt.Sprintf("detected xss payload: %s", err),
 				}, nil

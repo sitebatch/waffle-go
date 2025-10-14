@@ -26,7 +26,7 @@ func TestRegexInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL): types.NewStringValue("http://malicious.com"),
+						inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://malicious.com"),
 					},
 				},
 				inspectorArgs: &inspector.LibInjectionSQLIInspectorArgs{},
@@ -37,15 +37,15 @@ func TestRegexInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestPath): types.NewStringValue("/path/to/file"),
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL):  types.NewStringValue("http://malicious.com"),
+						inspector.InspectTargetHttpRequestPath: types.NewStringValue("/path/to/file"),
+						inspector.InspectTargetHttpRequestURL:  types.NewStringValue("http://malicious.com"),
 					},
 				},
 				inspectorArgs: &inspector.RegexInspectorArgs{
 					Regex: "^http://malicious.com$",
 					InspectTargetOptions: []inspector.InspectTargetOptions{
 						{
-							Target: inspector.InspectTargetHttpRequestURL.String(),
+							Target: inspector.InspectTargetHttpRequestURL,
 						},
 					},
 				},
@@ -57,14 +57,14 @@ func TestRegexInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL): types.NewStringValue("http://malicious.com"),
+						inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://malicious.com"),
 					},
 				},
 				inspectorArgs: &inspector.RegexInspectorArgs{
 					Regex: "^http://malicious.com$",
 					InspectTargetOptions: []inspector.InspectTargetOptions{
 						{
-							Target: inspector.InspectTargetHttpRequestURL.String(),
+							Target: inspector.InspectTargetHttpRequestURL,
 						},
 					},
 				},
@@ -76,14 +76,14 @@ func TestRegexInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL): types.NewStringValue("http://example.com"),
+						inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://example.com"),
 					},
 				},
 				inspectorArgs: &inspector.RegexInspectorArgs{
 					Regex: "^http://malicious.com$",
 					InspectTargetOptions: []inspector.InspectTargetOptions{
 						{
-							Target: inspector.InspectTargetHttpRequestURL.String(),
+							Target: inspector.InspectTargetHttpRequestURL,
 						},
 					},
 				},
@@ -94,18 +94,18 @@ func TestRegexInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestURL):  types.NewStringValue("http://malicious.com"),
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestPath): types.NewStringValue("/path/to/file"),
+						inspector.InspectTargetHttpRequestURL:  types.NewStringValue("http://malicious.com"),
+						inspector.InspectTargetHttpRequestPath: types.NewStringValue("/path/to/file"),
 					},
 				},
 				inspectorArgs: &inspector.RegexInspectorArgs{
 					Regex: "^http://malicious.com$",
 					InspectTargetOptions: []inspector.InspectTargetOptions{
 						{
-							Target: inspector.InspectTargetHttpRequestPath.String(),
+							Target: inspector.InspectTargetHttpRequestPath,
 						},
 						{
-							Target: inspector.InspectTargetHttpRequestURL.String(),
+							Target: inspector.InspectTargetHttpRequestURL,
 						},
 					},
 				},
@@ -117,7 +117,7 @@ func TestRegexInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestHeader): types.NewKeyValues(http.Header{
+						inspector.InspectTargetHttpRequestHeader: types.NewKeyValues(http.Header{
 							"User-Agent": []string{"Chrome", "Firefox"},
 						}),
 					},
@@ -126,7 +126,7 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					Regex: "^Firefox$",
 					InspectTargetOptions: []inspector.InspectTargetOptions{
 						{
-							Target: inspector.InspectTargetHttpRequestHeader.String(),
+							Target: inspector.InspectTargetHttpRequestHeader,
 							Params: []string{"User-Agent"},
 						},
 					},
@@ -139,7 +139,7 @@ func TestRegexInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestHeader): types.NewKeyValues(http.Header{
+						inspector.InspectTargetHttpRequestHeader: types.NewKeyValues(http.Header{
 							"User-Agent": []string{"Chrome", "Firefox"},
 						}),
 					},
@@ -148,7 +148,7 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					Regex: "^Edge$",
 					InspectTargetOptions: []inspector.InspectTargetOptions{
 						{
-							Target: inspector.InspectTargetHttpRequestHeader.String(),
+							Target: inspector.InspectTargetHttpRequestHeader,
 							Params: []string{"User-Agent"},
 						},
 					},
@@ -160,7 +160,7 @@ func TestRegexInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestHeader): types.NewKeyValues(http.Header{
+						inspector.InspectTargetHttpRequestHeader: types.NewKeyValues(http.Header{
 							"Host": []string{"example.com"},
 						}),
 					},
@@ -169,7 +169,7 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					Regex: "^example.com$",
 					InspectTargetOptions: []inspector.InspectTargetOptions{
 						{
-							Target: inspector.InspectTargetHttpRequestHeader.String(),
+							Target: inspector.InspectTargetHttpRequestHeader,
 							Params: []string{"User-Agent"},
 						},
 					},

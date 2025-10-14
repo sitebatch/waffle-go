@@ -27,42 +27,27 @@ func NewRuleEvaluator(inspectors map[string]inspector.Inspector) *RuleEvaluator 
 // It returns the evaluation results and whether the rule matched and should block the request.
 func (e *RuleEvaluator) Eval(r rule.Rule, data inspector.InspectData) ([]*EvalResult, bool) {
 	var results []*EvalResult
-	conditionResults := make([]bool, len(r.Conditions))
 
-	for idx, condition := range r.Conditions {
-		conditionResult := false
-
-		for _, target := range condition.InspectTarget {
-			if !data.HasTarget(inspector.InspectTarget(target.Target)) {
-				continue
-			}
-
-			result, err := e.runInspector(condition, data)
-			if err != nil {
-				log.Error("Error running inspector", "inspector", condition.Inspector, "error", err)
-				continue
-			}
-
-			if result != nil {
-				conditionResult = true
-
-				evalResult := &EvalResult{
-					Rule:          r,
-					InspectBy:     condition.Inspector,
-					InspectResult: result,
-				}
-				results = append(results, evalResult)
-			}
+	for _, condition := range r.Conditions {
+		result, err := e.runInspector(condition, data)
+		if err != nil {
+			log.Error("Error running inspector", "inspector", condition.Inspector, "error", err)
+			continue
 		}
 
-		conditionResults[idx] = conditionResult
+		if result != nil {
+			evalResult := &EvalResult{
+				Rule:          r,
+				InspectBy:     condition.Inspector,
+				InspectResult: result,
+			}
+			results = append(results, evalResult)
+		}
 	}
 
 	// If any condition is not met, the rule is not matched.
-	for _, res := range conditionResults {
-		if !res {
-			return nil, false
-		}
+	if len(results) != len(r.Conditions) {
+		return nil, false
 	}
 
 	for _, res := range results {
@@ -128,7 +113,7 @@ func ToInspectTargetOptions(inspectTargets []rule.InspectTarget) []inspector.Ins
 
 	for _, inspectTarget := range inspectTargets {
 		inspectTargetOptions = append(inspectTargetOptions, inspector.InspectTargetOptions{
-			Target: inspectTarget.Target,
+			Target: inspector.InspectTarget(inspectTarget.Target),
 			Params: inspectTarget.Keys,
 		})
 	}

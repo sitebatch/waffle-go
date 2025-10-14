@@ -1,28 +1,57 @@
 package waf
 
-import "sync/atomic"
+import (
+	"sync"
+
+	"github.com/sitebatch/waffle-go/internal/operation"
+)
 
 type EventRecorder struct {
-	events *atomic.Value
+	events ReadOnlyDetectionEvents
+	mu     sync.Mutex
 }
 
 func NewEventRecorder() *EventRecorder {
-	v := &atomic.Value{}
-	v.Store(&snapshot{})
 	return &EventRecorder{
-		events: v,
+		events: nil,
+		mu:     sync.Mutex{},
 	}
 }
 
 func (er *EventRecorder) Store(events *snapshot) {
-	er.events.Store(events)
+	er.mu.Lock()
+	defer er.mu.Unlock()
+
+	er.events = events
 }
 
 func (er *EventRecorder) Load() ReadOnlyDetectionEvents {
-	v := er.events.Load().(*snapshot)
-	return v
+	er.mu.Lock()
+	defer er.mu.Unlock()
+
+	return er.events
 }
 
 func (er *EventRecorder) Clear() {
-	er.events.Store(&snapshot{})
+	er.mu.Lock()
+	defer er.mu.Unlock()
+
+	er.events = nil
+}
+
+// snapshot is an event of a waf detection state at a particular operation.
+// It is used as a read-only representation of that state.
+type snapshot struct {
+	operation operation.Operation
+	events    []DetectionEvent
+}
+
+var _ ReadOnlyDetectionEvents = (*snapshot)(nil)
+
+func (s *snapshot) Events() []DetectionEvent {
+	return s.events
+}
+
+func (s *snapshot) Operation() operation.Operation {
+	return s.operation
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
+	"github.com/sitebatch/waffle-go/internal/emitter/waf/exporter"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/listener"
 	"github.com/sitebatch/waffle-go/internal/listener/account_takeover"
@@ -107,6 +108,7 @@ func Start(opts ...Options) {
 	w := &Waffle{
 		overrideRulesJSON: c.OverrideRulesJSON,
 	}
+	SetExporterProvider(exporter.ExporterNameStdout)
 	err := w.start()
 	if err != nil {
 		log.Error("Failed to start waffle: %v", err)
@@ -118,9 +120,8 @@ func Start(opts ...Options) {
 
 func SetExporterProvider(name waf.ExporterName) {
 	switch name {
-	case waf.ExporterNameStdout:
-		exporter := waf.NewStdoutExporter()
-		waf.SetExporter(exporter)
+	case exporter.ExporterNameStdout:
+		waf.SetExporter(exporter.NewStdoutExporter())
 	default:
 		log.Error("unknown exporter name: %s", name)
 	}

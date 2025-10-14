@@ -20,7 +20,7 @@ func NewStdoutExporter() *StdoutExporter {
 func (e *StdoutExporter) Export(ctx context.Context, event waf.ReadOnlyDetectionEvents) error {
 	for _, events := range event.Events() {
 		log.Info("WAF Detection Event",
-			"time", events.Time,
+			"time", events.DetectedAt,
 			"rule_id", events.Rule.ID,
 			"inspector", events.Inspector,
 			"message", events.Message,

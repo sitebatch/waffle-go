@@ -17,11 +17,11 @@ import (
 var _ waf.WAF = (*mockWaf)(nil)
 
 type mockWaf struct {
-	mockInspectFunc func(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) ([]waf.DetectionEvent, error)
+	mockInspectFunc func(data inspector.InspectData) ([]waf.DetectionEvent, error)
 }
 
-func (w *mockWaf) Inspect(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) ([]waf.DetectionEvent, error) {
-	return w.mockInspectFunc(wafOpCtx, data)
+func (w *mockWaf) Inspect(data inspector.InspectData) ([]waf.DetectionEvent, error) {
+	return w.mockInspectFunc(data)
 }
 
 func TestInitializeWafOperation(t *testing.T) {

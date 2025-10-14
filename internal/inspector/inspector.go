@@ -42,12 +42,13 @@ type InspectorArgs interface {
 }
 
 type InspectTargetOptions struct {
-	Target string
+	Target InspectTarget
 	Params []string
 }
 
 // InspectResult represents the result of an inspection
 type InspectResult struct {
-	Payload string // the payload deemed suspicious
-	Message string // message describing why it is suspicious
+	Target  InspectTarget // the target that was inspected
+	Payload string        // the payload deemed suspicious
+	Message string        // message describing why it is suspicious
 }

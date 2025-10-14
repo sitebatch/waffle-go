@@ -24,14 +24,14 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): types.NewStringValue("q=/etc/passwd"),
+						inspector.InspectTargetHttpRequestQuery: types.NewStringValue("q=/etc/passwd"),
 					},
 				},
 				inspectorArgs: &inspector.MatchListInspectorArgs{
 					List: []string{"etc/test", "etc/passwd", "etc/hosts"},
 					InspectTargetOptions: []inspector.InspectTargetOptions{
 						{
-							Target: inspector.InspectTargetHttpRequestQuery.String(),
+							Target: inspector.InspectTargetHttpRequestQuery,
 						},
 					},
 				},
@@ -42,14 +42,14 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): types.NewStringValue("q=/etc/passwd"),
+						inspector.InspectTargetHttpRequestQuery: types.NewStringValue("q=/etc/passwd"),
 					},
 				},
 				inspectorArgs: &inspector.MatchListInspectorArgs{
 					List: []string{"etc/test", "etc/shadow", "etc/hosts"},
 					InspectTargetOptions: []inspector.InspectTargetOptions{
 						{
-							Target: inspector.InspectTargetHttpRequestQuery.String(),
+							Target: inspector.InspectTargetHttpRequestQuery,
 						},
 					},
 				},
@@ -59,17 +59,17 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
 					Target: map[inspector.InspectTarget]types.InspectTargetValue{
-						inspector.InspectTarget(inspector.InspectTargetHttpRequestQuery): types.NewStringValue("q=/etc/passwd"),
+						inspector.InspectTargetHttpRequestQuery: types.NewStringValue("q=/etc/passwd"),
 					},
 				},
 				inspectorArgs: &inspector.MatchListInspectorArgs{
 					List: []string{"etc/test", "etc/passwd", "etc/hosts"},
 					InspectTargetOptions: []inspector.InspectTargetOptions{
 						{
-							Target: inspector.InspectTargetHttpRequestURL.String(),
+							Target: inspector.InspectTargetHttpRequestURL,
 						},
 						{
-							Target: inspector.InspectTargetHttpRequestQuery.String(),
+							Target: inspector.InspectTargetHttpRequestQuery,
 						},
 					},
 				},

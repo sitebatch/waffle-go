@@ -4,14 +4,13 @@ import (
 	"maps"
 
 	"github.com/sitebatch/waffle-go/action"
-	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/rule"
 )
 
 type WAF interface {
 	// Inspect inspects the given data and returns detection events and an optional block error.
-	Inspect(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) ([]DetectionEvent, error)
+	Inspect(data inspector.InspectData) ([]DetectionEvent, error)
 }
 
 type waf struct {
@@ -29,20 +28,14 @@ func NewWAF(rules *rule.RuleSet) WAF {
 	}
 }
 
-func (w *waf) Inspect(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) ([]DetectionEvent, error) {
+func (w *waf) Inspect(data inspector.InspectData) ([]DetectionEvent, error) {
 	var detectionEvents []DetectionEvent
 
 	for _, rule := range w.rules.Rules {
 		results, doBlock := w.ruleEvaluator.Eval(rule, data)
 
 		for _, result := range results {
-			event := NewDetectionEvent(
-				data.WafOperationContext,
-				result.Rule,
-				result.InspectBy,
-				result.InspectResult.Message,
-				result.InspectResult.Payload,
-			)
+			event := NewDetectionEvent(data.WafOperationContext, *result)
 			detectionEvents = append(detectionEvents, event)
 		}
 

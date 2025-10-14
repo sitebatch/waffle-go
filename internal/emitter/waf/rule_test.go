@@ -17,11 +17,17 @@ func (m *MockInspector) Name() inspector.InspectorName {
 }
 
 func (m *MockInspector) IsSupportTarget(target inspector.InspectTarget) bool {
-	return true
+	return target == inspector.InspectTargetHttpRequestURL
 }
 
 func (m *MockInspector) Inspect(data inspector.InspectData, args inspector.InspectorArgs) (*inspector.InspectResult, error) {
+	_, ok := data.Target[inspector.InspectTargetHttpRequestURL]
+	if !ok {
+		return nil, nil
+	}
+
 	url := data.Target[inspector.InspectTargetHttpRequestURL].GetValue()
+
 	if url == "http://malicious.com" {
 		return &inspector.InspectResult{
 			Message: "malicious URL detected",

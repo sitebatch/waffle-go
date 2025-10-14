@@ -1,8 +1,6 @@
 package waf
 
 import (
-	"maps"
-
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/rule"
@@ -19,12 +17,9 @@ type waf struct {
 }
 
 func NewWAF(rules *rule.RuleSet) WAF {
-	inspectors := make(map[string]inspector.Inspector)
-	maps.Copy(inspectors, inspector.NewInspector())
-
 	return &waf{
 		rules:         rules,
-		ruleEvaluator: NewRuleEvaluator(inspectors),
+		ruleEvaluator: NewRuleEvaluator(inspector.NewInspector()),
 	}
 }
 
@@ -35,8 +30,7 @@ func (w *waf) Inspect(data inspector.InspectData) ([]DetectionEvent, error) {
 		results, doBlock := w.ruleEvaluator.Eval(rule, data)
 
 		for _, result := range results {
-			event := NewDetectionEvent(data.WafOperationContext, *result)
-			detectionEvents = append(detectionEvents, event)
+			detectionEvents = append(detectionEvents, NewDetectionEvent(data.WafOperationContext, *result))
 		}
 
 		if doBlock {

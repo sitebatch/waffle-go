@@ -18,15 +18,16 @@ func NewStdoutExporter() *StdoutExporter {
 }
 
 func (e *StdoutExporter) Export(ctx context.Context, event waf.ReadOnlyDetectionEvents) error {
-	for _, events := range event.Events() {
+	for _, evt := range event.Events() {
 		log.Info("WAF Detection Event",
-			"time", events.DetectedAt,
-			"rule_id", events.Rule.ID,
-			"inspector", events.Inspector,
-			"message", events.Message,
-			"payload", events.Payload,
-			"http_request", events.Context.HttpRequest,
-			"meta", events.Context.Meta,
+			"time", evt.DetectedAt,
+			"rule_id", evt.Rule.ID,
+			"block", evt.Rule.IsBlockAction(),
+			"inspector", evt.Inspector,
+			"message", evt.Message,
+			"payload", evt.Payload,
+			"http_request", evt.Context.HttpRequest,
+			"meta", evt.Context.Meta,
 		)
 	}
 

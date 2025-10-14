@@ -30,7 +30,7 @@ func TestInitializeWafOperation(t *testing.T) {
 	require.NoError(t, rule.LoadDefaultRules())
 
 	testCases := map[string]struct {
-		opts                 []waf.Option
+		opts                 []waf.WafOperationContextOption
 		wantOperationContext *wafcontext.WafOperationContext
 	}{
 		"can initialize WafOperation without options": {
@@ -38,7 +38,7 @@ func TestInitializeWafOperation(t *testing.T) {
 			wantOperationContext: wafcontext.NewWafOperationContext(),
 		},
 		"can initialize WafOperation with HTTP request context": {
-			opts: []waf.Option{
+			opts: []waf.WafOperationContextOption{
 				waf.WithHttpRequstContext(wafcontext.HttpRequest{
 					URL:      "http://example.com",
 					Headers:  map[string][]string{"User-Agent": {"Go-http-client/1.1"}},

@@ -29,8 +29,6 @@ var (
 // An operation is a unit of application process (e.g. HTTP Request handling, Execute SQL Query, etc...) that can be started and finished.
 // When an operation is started or finished, events are notified to event listeners.
 type Operation interface {
-	// GetRootID returns the root operation ID.
-	GetRootID() string
 	// GetID returns the operation ID.
 	GetID() string
 	// Parent returns the parent operation.
@@ -102,14 +100,6 @@ func NewOperation(parent Operation) Operation {
 }
 
 func (o *operation) GetID() string {
-	return o.id
-}
-
-func (o *operation) GetRootID() string {
-	for current := o.unwrap().parent; current != nil; current = current.unwrap().parent {
-		return current.GetID()
-	}
-
 	return o.id
 }
 

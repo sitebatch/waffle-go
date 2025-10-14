@@ -1,25 +1,11 @@
 package waf
 
 import (
-	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/log"
 	"github.com/sitebatch/waffle-go/internal/rule"
 	"golang.org/x/time/rate"
 )
-
-func ToInspectTargetOptions(inspectTargets []rule.InspectTarget) []inspector.InspectTargetOptions {
-	inspectTargetOptions := make([]inspector.InspectTargetOptions, len(inspectTargets))
-
-	for _, inspectTarget := range inspectTargets {
-		inspectTargetOptions = append(inspectTargetOptions, inspector.InspectTargetOptions{
-			Target: inspectTarget.Target,
-			Params: inspectTarget.Keys,
-		})
-	}
-
-	return inspectTargetOptions
-}
 
 type RuleEvaluator struct {
 	inspectors map[string]inspector.Inspector
@@ -37,11 +23,13 @@ func NewRuleEvaluator(inspectors map[string]inspector.Inspector) *RuleEvaluator 
 	}
 }
 
-func (e *RuleEvaluator) Eval(wafOpCtx *wafcontext.WafOperationContext, r rule.Rule, data inspector.InspectData) ([]*EvalResult, bool) {
+// Eval evaluates the rule against the given inspect data.
+// It returns the evaluation results and whether the rule matched and should block the request.
+func (e *RuleEvaluator) Eval(r rule.Rule, data inspector.InspectData) ([]*EvalResult, bool) {
+	var results []*EvalResult
 	conditionResults := make([]bool, len(r.Conditions))
-	results := make([]*EvalResult, 0)
 
-	for i, condition := range r.Conditions {
+	for idx, condition := range r.Conditions {
 		conditionResult := false
 
 		for _, target := range condition.InspectTarget {
@@ -64,19 +52,16 @@ func (e *RuleEvaluator) Eval(wafOpCtx *wafcontext.WafOperationContext, r rule.Ru
 					InspectResult: result,
 				}
 				results = append(results, evalResult)
-
-				if r.IsBlockAction() {
-					return results, true
-				}
 			}
 		}
 
-		conditionResults[i] = conditionResult
+		conditionResults[idx] = conditionResult
 	}
 
+	// If any condition is not met, the rule is not matched.
 	for _, res := range conditionResults {
 		if !res {
-			return results, false
+			return nil, false
 		}
 	}
 
@@ -136,4 +121,17 @@ func (e *RuleEvaluator) runInspector(condition rule.Condition, data inspector.In
 		log.Warn("Unknown inspector", "name", i.Name())
 		return i.Inspect(data, nil)
 	}
+}
+
+func ToInspectTargetOptions(inspectTargets []rule.InspectTarget) []inspector.InspectTargetOptions {
+	var inspectTargetOptions []inspector.InspectTargetOptions
+
+	for _, inspectTarget := range inspectTargets {
+		inspectTargetOptions = append(inspectTargetOptions, inspector.InspectTargetOptions{
+			Target: inspectTarget.Target,
+			Params: inspectTarget.Keys,
+		})
+	}
+
+	return inspectTargetOptions
 }

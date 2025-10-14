@@ -1,7 +1,7 @@
 package waf
 
 import (
-	"sync"
+	"maps"
 
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
@@ -10,23 +10,18 @@ import (
 )
 
 type WAF interface {
+	// Inspect inspects the given data and returns detection events and an optional block error.
 	Inspect(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) ([]DetectionEvent, error)
 }
 
 type waf struct {
 	rules         *rule.RuleSet
 	ruleEvaluator *RuleEvaluator
-
-	inspectors map[string]inspector.Inspector
-
-	mu sync.Mutex
 }
 
 func NewWAF(rules *rule.RuleSet) WAF {
 	inspectors := make(map[string]inspector.Inspector)
-	for n, i := range inspector.NewInspector() {
-		inspectors[n] = i
-	}
+	maps.Copy(inspectors, inspector.NewInspector())
 
 	return &waf{
 		rules:         rules,
@@ -35,14 +30,14 @@ func NewWAF(rules *rule.RuleSet) WAF {
 }
 
 func (w *waf) Inspect(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) ([]DetectionEvent, error) {
-	detectionEvents := make([]DetectionEvent, 0)
+	var detectionEvents []DetectionEvent
 
 	for _, rule := range w.rules.Rules {
-		results, doBlock := w.ruleEvaluator.Eval(wafOpCtx, rule, data)
+		results, doBlock := w.ruleEvaluator.Eval(rule, data)
 
 		for _, result := range results {
 			event := NewDetectionEvent(
-				wafOpCtx,
+				data.WafOperationContext,
 				result.Rule,
 				result.InspectBy,
 				result.InspectResult.Message,

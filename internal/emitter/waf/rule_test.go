@@ -147,7 +147,17 @@ func TestRuleEvaluator_Eval(t *testing.T) {
 					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://example.com"),
 				},
 			},
-			wantResult: []*waf.EvalResult{},
+			wantResult: nil,
+			wantBlock:  false,
+		},
+		"if the target specified in condition is not included in the inspection targets": {
+			rule: monitorMaliciousURLRule,
+			data: inspector.InspectData{
+				Target: map[inspector.InspectTarget]types.InspectTargetValue{
+					inspector.InspectTargetClientIP: types.NewStringValue("192.168.1.1"),
+				},
+			},
+			wantResult: nil,
 			wantBlock:  false,
 		},
 		"if there are multiple conditions and only one of them is met, it should not be detected": {
@@ -157,7 +167,7 @@ func TestRuleEvaluator_Eval(t *testing.T) {
 					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://malicious.com"),
 				},
 			},
-			wantResult: []*waf.EvalResult{},
+			wantResult: nil,
 			wantBlock:  false,
 		},
 	}
@@ -171,10 +181,57 @@ func TestRuleEvaluator_Eval(t *testing.T) {
 				"nop":  &NopInspector{},
 			})
 
-			gotResult, gotBlock := evaluator.Eval(nil, tt.rule, tt.data)
+			gotResult, gotBlock := evaluator.Eval(tt.rule, tt.data)
 
 			assert.Equal(t, tt.wantBlock, gotBlock)
 			assert.Equal(t, tt.wantResult, gotResult)
+		})
+	}
+}
+
+func TestToInspectTargetOptions(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    []rule.InspectTarget
+		expected []inspector.InspectTargetOptions
+	}{
+		"single target without keys": {
+			input: []rule.InspectTarget{
+				{Target: "http.request.url"},
+			},
+			expected: []inspector.InspectTargetOptions{
+				{Target: "http.request.url"},
+			},
+		},
+		"single target with keys": {
+			input: []rule.InspectTarget{
+				{Target: "http.request.header", Keys: []string{"User-Agent", "Referer"}},
+			},
+			expected: []inspector.InspectTargetOptions{
+				{Target: "http.request.header", Params: []string{"User-Agent", "Referer"}},
+			},
+		},
+		"multiple targets with and without keys": {
+			input: []rule.InspectTarget{
+				{Target: "http.request.url"},
+				{Target: "http.request.header", Keys: []string{"User-Agent"}},
+				{Target: "http.request.body"},
+			},
+			expected: []inspector.InspectTargetOptions{
+				{Target: "http.request.url"},
+				{Target: "http.request.header", Params: []string{"User-Agent"}},
+				{Target: "http.request.body"},
+			},
+		},
+	}
+
+	for name, tt := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			result := waf.ToInspectTargetOptions(tt.input)
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }

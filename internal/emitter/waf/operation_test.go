@@ -4,6 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/emitter/http"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
@@ -107,47 +110,81 @@ func TestSetMeta(t *testing.T) {
 	}
 }
 
-/*
 func TestWafOperation_Run(t *testing.T) {
 	t.Parallel()
 
-	op := &http.HTTPRequestHandlerOperation{
-		Operation: operation.NewOperation(nil),
+	type arrange struct {
+		mockInspectFunc func(data inspector.InspectData) ([]waf.DetectionEvent, error)
 	}
 
-	type arrange struct {
-		mockInspectFunc        func(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) ([]waf.DetectionEvent, error)
-	}
+	wafOpCtx := wafcontext.NewWafOperationContext(wafcontext.WithHttpRequstContext(
+		wafcontext.HttpRequest{
+			URL:      "http://example.com",
+			Headers:  map[string][]string{"User-Agent": {"Go-http-client/1.1"}},
+			Body:     map[string][]string{"key": {"value"}},
+			ClientIP: "127.0.0.1",
+		},
+	))
 
 	testCases := map[string]struct {
-		arrange arrange
-		block   bool
+		arrange                arrange
+		wantDetectionEventSize int
+		block                  bool
 	}{
 		"when inspector return block error, set block on waf operation": {
 			arrange: arrange{
-				mockInspectFunc: func(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) ([]waf.DetectionEvent, error) {
+				mockInspectFunc: func(data inspector.InspectData) ([]waf.DetectionEvent, error) {
 					return []waf.DetectionEvent{
-						{RuleID: "example-rule", Inspector: string(inspector.RegexInspectorName)},
-					},
+							waf.NewDetectionEvent(data.WafOperationContext, waf.EvalResult{
+								Rule: rule.Rule{
+									ID: "1",
+									Conditions: []rule.Condition{
+										{
+											Inspector: "regex",
+											InspectTarget: []rule.InspectTarget{
+												{
+													Target: "http.request.header",
+													Keys:   []string{"User-Agent"},
+												},
+											},
+											Regex: "BadBot",
+										},
+									},
+									Action: "block",
+								},
+								InspectBy: "regex",
+								InspectResult: &inspector.InspectResult{
+									Target:  inspector.InspectTargetHttpRequestHeader,
+									Message: "Suspicious pattern detected: 'BadBot' matches regex 'BadBot'",
+									Payload: "BadBot",
+								},
+							}),
+						}, &action.BlockError{
+							RuleID:    "1",
+							Inspector: "regex",
+						}
 				},
 			},
-			block: true,
+			wantDetectionEventSize: 1,
+			block:                  true,
 		},
 		"when inspector return nil (not detected)": {
 			arrange: arrange{
-				mockInspectFunc: func(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) error {
-					return nil
+				mockInspectFunc: func(data inspector.InspectData) ([]waf.DetectionEvent, error) {
+					return nil, nil
 				},
 			},
-			block: false,
+			wantDetectionEventSize: 0,
+			block:                  false,
 		},
 		"when inspector return error (not blocked error)": {
 			arrange: arrange{
-				mockInspectFunc: func(wafOpCtx *wafcontext.WafOperationContext, data inspector.InspectData) error {
-					return fmt.Errorf("something error")
+				mockInspectFunc: func(data inspector.InspectData) ([]waf.DetectionEvent, error) {
+					return nil, assert.AnError
 				},
 			},
-			block: false,
+			wantDetectionEventSize: 0,
+			block:                  false,
 		},
 	}
 
@@ -155,21 +192,156 @@ func TestWafOperation_Run(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			wafop := &waf.WafOperation{
-				Operation: operation.NewOperation(op),
-				Waf: &mockWaf{
-					mockInspectFunc:        tt.arrange.mockInspectFunc,
-					mockGetDetectionEvents: tt.arrange.mockGetDetectionEvents,
-				},
+			op := &http.HTTPRequestHandlerOperation{
+				Operation: operation.NewOperation(nil),
 			}
+
+			wafop := waf.NewWafOperation(op, &mockWaf{
+				mockInspectFunc: tt.arrange.mockInspectFunc,
+			}, wafOpCtx)
 
 			wafop.Run(op, inspector.InspectData{
 				Target: inspector.NewInspectDataBuilder(wafop.OperationContext()).Target,
 			})
 
 			assert.Equal(t, tt.block, wafop.IsBlock())
+
+			evt := wafop.DetectionEvents()
+			if tt.wantDetectionEventSize == 0 {
+				assert.Nil(t, evt)
+			} else {
+				assert.Len(t, evt.Events(), tt.wantDetectionEventSize)
+			}
 		})
 	}
 }
 
-*/
+func TestWafOperation_FinishInspect(t *testing.T) {
+	t.Parallel()
+
+	type arrange struct {
+		mockInspectFunc func(data inspector.InspectData) ([]waf.DetectionEvent, error)
+	}
+
+	wafOpCtx := wafcontext.NewWafOperationContext(wafcontext.WithHttpRequstContext(
+		wafcontext.HttpRequest{
+			URL:      "http://example.com",
+			Headers:  map[string][]string{"User-Agent": {"Go-http-client/1.1"}},
+			Body:     map[string][]string{"key": {"value"}},
+			ClientIP: "127.0.0.1",
+		},
+	))
+
+	dummyBlockRule := rule.Rule{
+		ID: "1",
+		Conditions: []rule.Condition{
+			{
+				Inspector: "regex",
+				InspectTarget: []rule.InspectTarget{
+					{
+						Target: "http.request.header",
+						Keys:   []string{"User-Agent"},
+					},
+				},
+				Regex: "BadBot",
+			},
+		},
+		Action: "block",
+	}
+
+	testCases := map[string]struct {
+		arrange    arrange
+		wantResult *waf.WafOperationResult
+	}{
+		"when inspector return block error, set block on waf operation": {
+			arrange: arrange{
+				mockInspectFunc: func(data inspector.InspectData) ([]waf.DetectionEvent, error) {
+					return []waf.DetectionEvent{
+							waf.NewDetectionEvent(data.WafOperationContext, waf.EvalResult{
+								Rule:      dummyBlockRule,
+								InspectBy: "regex",
+								InspectResult: &inspector.InspectResult{
+									Target:  inspector.InspectTargetHttpRequestHeader,
+									Message: "Suspicious pattern detected: 'BadBot' matches regex 'BadBot'",
+									Payload: "BadBot",
+								},
+							}),
+						}, &action.BlockError{
+							RuleID:    "1",
+							Inspector: "regex",
+						}
+				},
+			},
+			wantResult: &waf.WafOperationResult{
+				BlockErr: &action.BlockError{
+					RuleID:    "1",
+					Inspector: "regex",
+				},
+				DetectionEvents: []waf.DetectionEvent{
+					waf.NewDetectionEvent(wafOpCtx, waf.EvalResult{
+						Rule:      dummyBlockRule,
+						InspectBy: "regex",
+						InspectResult: &inspector.InspectResult{
+							Target:  inspector.InspectTargetHttpRequestHeader,
+							Message: "Suspicious pattern detected: 'BadBot' matches regex 'BadBot'",
+							Payload: "BadBot",
+						},
+					}),
+				},
+			},
+		},
+		"when inspector return nil (not detected)": {
+			arrange: arrange{
+				mockInspectFunc: func(data inspector.InspectData) ([]waf.DetectionEvent, error) {
+					return nil, nil
+				},
+			},
+			wantResult: &waf.WafOperationResult{
+				BlockErr:        nil,
+				DetectionEvents: nil,
+			},
+		},
+		"when inspector return error (not blocked error)": {
+			arrange: arrange{
+				mockInspectFunc: func(data inspector.InspectData) ([]waf.DetectionEvent, error) {
+					return nil, assert.AnError
+				},
+			},
+			wantResult: &waf.WafOperationResult{
+				BlockErr:        nil,
+				DetectionEvents: nil,
+			},
+		},
+	}
+
+	for name, tt := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			op := &http.HTTPRequestHandlerOperation{
+				Operation: operation.NewOperation(nil),
+			}
+
+			wafop := waf.NewWafOperation(op, &mockWaf{
+				mockInspectFunc: tt.arrange.mockInspectFunc,
+			}, wafOpCtx)
+
+			wafop.Run(op, *inspector.NewInspectDataBuilder(wafop.OperationContext()).Build())
+
+			if tt.wantResult.BlockErr != nil {
+				assert.NotNil(t, wafop.DetectionEvents())
+			}
+
+			result := &waf.WafOperationResult{}
+			wafop.FinishInspect(op, result)
+
+			opt := cmpopts.IgnoreFields(waf.DetectionEvent{}, "DetectedAt")
+			if diff := cmp.Diff(tt.wantResult.DetectionEvents, result.DetectionEvents, opt); diff != "" {
+				t.Errorf("mismatch in DetectionEvents (-want +got):\n%s", diff)
+			}
+
+			evt := wafop.DetectionEvents()
+			assert.Nil(t, evt)
+		})
+	}
+}

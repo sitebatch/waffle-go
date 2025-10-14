@@ -80,6 +80,11 @@ func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.Ins
 	defer wafOp.mu.Unlock()
 
 	events, err := wafOp.Waf.Inspect(inspectData)
+
+	if len(events) > 0 {
+		wafOp.snapshot(op, events)
+	}
+
 	if err != nil {
 		var blockError *action.BlockError
 		if errors.As(err, &blockError) {
@@ -88,10 +93,6 @@ func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.Ins
 		}
 
 		log.Error("failed to inspect", "error", err)
-	}
-
-	if len(events) > 0 {
-		wafOp.snapshot(op, events)
 	}
 }
 
@@ -108,10 +109,14 @@ func (wafOp *WafOperation) FinishInspect(op operation.Operation, res *WafOperati
 	res.BlockErr = wafOp.blockErr
 
 	events := wafOp.eventRecorder.Load()
+
 	if events != nil {
+		res.DetectionEvents = events.Events()
+
 		if err := GetExporter().Export(context.Background(), events); err != nil {
 			log.Error("failed to export WAF event", "error", err)
 		}
+
 		wafOp.eventRecorder.Clear()
 	}
 }
@@ -130,13 +135,14 @@ func (wafOp *WafOperation) OperationContext() *wafcontext.WafOperationContext {
 }
 
 func (wafOp *WafOperation) snapshot(op operation.Operation, events []DetectionEvent) {
-	wafOp.mu.Lock()
-	defer wafOp.mu.Unlock()
-
 	s := &snapshot{
 		events:    events,
 		operation: op,
 	}
 
 	wafOp.eventRecorder.Store(s)
+}
+
+func (wafOp *WafOperation) DetectionEvents() ReadOnlyDetectionEvents {
+	return wafOp.eventRecorder.Load()
 }

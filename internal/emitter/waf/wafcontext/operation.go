@@ -3,6 +3,7 @@ package wafcontext
 type HttpRequest struct {
 	URL      string
 	Headers  map[string][]string
+	RawBody  []byte
 	Body     map[string][]string
 	ClientIP string
 }

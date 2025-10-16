@@ -249,6 +249,23 @@ func TestWafOperation_FinishInspect(t *testing.T) {
 		Action: "block",
 	}
 
+	dummyMonitorRule := rule.Rule{
+		ID: "2",
+		Conditions: []rule.Condition{
+			{
+				Inspector: "regex",
+				InspectTarget: []rule.InspectTarget{
+					{
+						Target: "http.request.header",
+						Keys:   []string{"User-Agent"},
+					},
+				},
+				Regex: "GoodBot",
+			},
+		},
+		Action: "monitor",
+	}
+
 	testCases := map[string]struct {
 		arrange    arrange
 		wantResult *waf.WafOperationResult
@@ -285,6 +302,37 @@ func TestWafOperation_FinishInspect(t *testing.T) {
 							Target:  inspector.InspectTargetHttpRequestHeader,
 							Message: "Suspicious pattern detected: 'BadBot' matches regex 'BadBot'",
 							Payload: "BadBot",
+						},
+					}),
+				},
+			},
+		},
+		"when inspector return monitor event, should not block": {
+			arrange: arrange{
+				mockInspectFunc: func(data inspector.InspectData) ([]waf.DetectionEvent, error) {
+					return []waf.DetectionEvent{
+						waf.NewDetectionEvent(data.WafOperationContext, waf.EvalResult{
+							Rule:      dummyMonitorRule,
+							InspectBy: "regex",
+							InspectResult: &inspector.InspectResult{
+								Target:  inspector.InspectTargetHttpRequestHeader,
+								Message: "Suspicious pattern detected: 'GoodBot' matches regex 'GoodBot'",
+								Payload: "GoodBot",
+							},
+						}),
+					}, nil
+				},
+			},
+			wantResult: &waf.WafOperationResult{
+				BlockErr: nil,
+				DetectionEvents: []waf.DetectionEvent{
+					waf.NewDetectionEvent(wafOpCtx, waf.EvalResult{
+						Rule:      dummyMonitorRule,
+						InspectBy: "regex",
+						InspectResult: &inspector.InspectResult{
+							Target:  inspector.InspectTargetHttpRequestHeader,
+							Message: "Suspicious pattern detected: 'GoodBot' matches regex 'GoodBot'",
+							Payload: "GoodBot",
 						},
 					}),
 				},

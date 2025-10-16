@@ -76,10 +76,10 @@ func InitializeWafOperation(ctx context.Context, opts ...WafOperationContextOpti
 
 // Run inspects the request data and blocks the request if it violates the WAF rules.
 func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.InspectData) {
+	events, err := wafOp.Waf.Inspect(inspectData)
+
 	wafOp.mu.Lock()
 	defer wafOp.mu.Unlock()
-
-	events, err := wafOp.Waf.Inspect(inspectData)
 
 	if len(events) > 0 {
 		wafOp.snapshot(op, events)

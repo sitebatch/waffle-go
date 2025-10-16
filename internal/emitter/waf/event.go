@@ -17,6 +17,7 @@ type ReadOnlyDetectionEvents interface {
 type HttpRequest struct {
 	URL      string
 	Headers  map[string][]string
+	RawBody  []byte
 	Body     map[string][]string
 	ClientIP string
 }
@@ -65,6 +66,7 @@ func NewDetectionContext(wafOpCtx *wafcontext.WafOperationContext) *DetectionCon
 		HttpRequest: &HttpRequest{
 			URL:      req.URL,
 			Headers:  req.Headers,
+			RawBody:  req.RawBody,
 			Body:     req.Body,
 			ClientIP: req.ClientIP,
 		},

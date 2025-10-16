@@ -18,7 +18,7 @@ func NewEventRecorder() *EventRecorder {
 	}
 }
 
-func (er *EventRecorder) Store(events *snapshot) {
+func (er *EventRecorder) Store(events ReadOnlyDetectionEvents) {
 	er.mu.Lock()
 	defer er.mu.Unlock()
 

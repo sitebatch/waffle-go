@@ -1,6 +1,8 @@
 package waf
 
 import (
+	"errors"
+
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/log"
 	"github.com/sitebatch/waffle-go/internal/rule"
@@ -62,7 +64,7 @@ func (e *RuleEvaluator) Eval(r rule.Rule, data inspector.InspectData) ([]*EvalRe
 func (e *RuleEvaluator) runInspector(condition rule.Condition, data inspector.InspectData) (*inspector.InspectResult, error) {
 	i, exists := e.inspectors[condition.Inspector]
 	if !exists {
-		return nil, nil
+		return nil, errors.New("inspector not found: " + condition.Inspector)
 	}
 
 	switch i.Name() {

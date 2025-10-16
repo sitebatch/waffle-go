@@ -39,7 +39,7 @@ func ProtectSQLOperation(ctx context.Context, query string) error {
 	if parentOp, ok := parent.(*http.HTTPRequestHandlerOperation); ok {
 		wafop = parentOp.WafOperation
 	} else {
-		wafop, _ = waf.StartWafOperation(ctx)
+		wafop, _ = waf.InitializeWafOperation(ctx)
 	}
 
 	op := &SQLOperation{

@@ -1,9 +1,9 @@
 package inspector
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector/libinjection"
 	"github.com/sitebatch/waffle-go/internal/inspector/types"
 )
@@ -51,54 +51,62 @@ func (r *LibInjectionXSSInspector) IsSupportTarget(target InspectTarget) bool {
 	return true
 }
 
-func (r *LibInjectionSQLIInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) error {
+func (r *LibInjectionSQLIInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
 	args, ok := inspectorArgs.(*LibInjectionSQLIInspectorArgs)
 	if !ok {
-		return fmt.Errorf("invalid args")
+		return nil, errors.New("invalid args, not LibInjectionSQLIInspectorArgs")
 	}
 
-	for _, target := range args.InspectTargetOptions {
-		if _, ok := inspectData.Target[InspectTarget(target.Target)]; !ok {
+	for _, opt := range args.InspectTargetOptions {
+		if _, ok := inspectData.Target[opt.Target]; !ok {
 			continue
 		}
 
-		values := inspectData.Target[InspectTarget(target.Target)].GetValues(
-			types.WithParamNames(target.Params),
+		values := inspectData.Target[opt.Target].GetValues(
+			types.WithParamNames(opt.Params),
 		)
 
 		for _, value := range values {
 			err := libinjection.IsSQLiPayload(value)
 			if err != nil {
-				return &action.DetectionError{Reason: fmt.Sprintf("detected sql injection payload: %s", err)}
+				return &InspectResult{
+					Target:  opt.Target,
+					Payload: value,
+					Message: fmt.Sprintf("detected sqli payload: %s", err),
+				}, nil
 			}
 		}
 	}
 
-	return nil
+	return nil, nil
 }
 
-func (r *LibInjectionXSSInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) error {
+func (r *LibInjectionXSSInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
 	args, ok := inspectorArgs.(*LibInjectionXSSInspectorArgs)
 	if !ok {
-		return fmt.Errorf("invalid args")
+		return nil, errors.New("invalid args, not LibInjectionXSSInspectorArgs")
 	}
 
-	for _, target := range args.InspectTargetOptions {
-		if _, ok := inspectData.Target[InspectTarget(target.Target)]; !ok {
+	for _, opt := range args.InspectTargetOptions {
+		if _, ok := inspectData.Target[opt.Target]; !ok {
 			continue
 		}
 
-		values := inspectData.Target[InspectTarget(target.Target)].GetValues(
-			types.WithParamNames(target.Params),
+		values := inspectData.Target[opt.Target].GetValues(
+			types.WithParamNames(opt.Params),
 		)
 
 		for _, value := range values {
 			err := libinjection.IsXSSPayload(value)
 			if err != nil {
-				return &action.DetectionError{Reason: fmt.Sprintf("detected xss payload: %s", err)}
+				return &InspectResult{
+					Target:  opt.Target,
+					Payload: value,
+					Message: fmt.Sprintf("detected xss payload: %s", err),
+				}, nil
 			}
 		}
 	}
 
-	return nil
+	return nil, nil
 }

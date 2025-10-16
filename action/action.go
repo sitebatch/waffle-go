@@ -1,18 +1,12 @@
 package action
 
-import "fmt"
-
-type DetectionError struct {
-	Reason string
-}
+import (
+	"fmt"
+)
 
 type BlockError struct {
 	RuleID    string
 	Inspector string
-}
-
-func (e *DetectionError) Error() string {
-	return e.Reason
 }
 
 func (e *BlockError) Error() string {

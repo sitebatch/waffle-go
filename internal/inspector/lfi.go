@@ -1,7 +1,8 @@
 package inspector
 
 import (
-	"github.com/sitebatch/waffle-go/action"
+	"fmt"
+
 	"github.com/sitebatch/waffle-go/internal/inspector/lfi"
 )
 
@@ -25,22 +26,30 @@ func (i *LFIInspector) IsSupportTarget(target InspectTarget) bool {
 	return target == InspectTargetOSFileOpen
 }
 
-func (i *LFIInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) error {
+func (i *LFIInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
 	inspectValue := inspectData.Target[InspectTargetOSFileOpen]
 
 	if inspectValue == nil {
-		return nil
+		return nil, nil
 	}
 
 	filePath := inspectValue.GetValue()
 
 	if lfi.IsAttemptDirectoryTraversal(filePath) {
-		return &action.DetectionError{Reason: "detected directory traversal"}
+		return &InspectResult{
+			Target:  InspectTargetOSFileOpen,
+			Payload: filePath,
+			Message: fmt.Sprintf("detected attempt directory traversal: %s", filePath),
+		}, nil
 	}
 
 	if lfi.IsSensitiveFilePath(filePath) {
-		return &action.DetectionError{Reason: "detected suspicious file path"}
+		return &InspectResult{
+			Target:  InspectTargetOSFileOpen,
+			Payload: filePath,
+			Message: fmt.Sprintf("detected sensitive file path access: %s", filePath),
+		}, nil
 	}
 
-	return nil
+	return nil, nil
 }

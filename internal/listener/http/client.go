@@ -23,12 +23,12 @@ func NewHTTPClientSecurity(rootOp operation.Operation) (listener.Listener, error
 }
 
 func (httpClientSec *HTTPClientSecurity) OnRequest(op *http.HTTPClientRequestOperation, args http.HTTPClientRequestOperationArg) {
-	op.Run(op, *inspector.NewInspectDataBuilder().WithHTTPClientRequestURL(args.URL).Build())
+	op.Run(op, *inspector.NewInspectDataBuilder(op.OperationContext()).WithHTTPClientRequestURL(args.URL).Build())
 }
 
 func (httpClientSec *HTTPClientSecurity) OnFinish(op *http.HTTPClientRequestOperation, res *http.HTTPClientRequestOperationResult) {
 	result := &waf.WafOperationResult{}
-	op.FinishInspect(result)
+	op.FinishInspect(op, result)
 
 	if result.IsBlock() {
 		res.BlockErr = result.BlockErr

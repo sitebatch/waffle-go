@@ -4,232 +4,127 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
+	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/inspector"
-	"github.com/sitebatch/waffle-go/internal/inspector/types"
 	"github.com/sitebatch/waffle-go/internal/rule"
 	"github.com/stretchr/testify/assert"
 )
 
-type MockInspector struct{}
-
-func (m *MockInspector) Name() inspector.InspectorName {
-	return inspector.InspectorName("mock")
-}
-
-func (m *MockInspector) IsSupportTarget(target inspector.InspectTarget) bool {
-	return true
-}
-
-func (m *MockInspector) Inspect(data inspector.InspectData, args inspector.InspectorArgs) error {
-	if data.Target[inspector.InspectTargetHttpRequestURL].GetValue() == "http://malicious.com" {
-		return &action.DetectionError{Reason: "malicious URL detected"}
-	}
-	return nil
-}
-
-type NothingInspector struct{}
-
-func (n *NothingInspector) Name() inspector.InspectorName {
-	return inspector.InspectorName("nothing")
-}
-
-func (n *NothingInspector) IsSupportTarget(target inspector.InspectTarget) bool {
-	return true
-}
-
-func (n *NothingInspector) Inspect(data inspector.InspectData, args inspector.InspectorArgs) error {
-	return nil
-}
-
-func TestWAF(t *testing.T) {
+func TestWAF_Inspect(t *testing.T) {
 	t.Parallel()
 
-	type arrange struct {
-		rules []rule.Rule
+	r := &rule.RuleSet{
+		Version: "1.0",
+		Rules: []rule.Rule{
+			{
+				ID: "1",
+				Conditions: []rule.Condition{
+					{
+						Inspector: "regex",
+						InspectTarget: []rule.InspectTarget{
+							{
+								Target: "http.request.header",
+								Keys:   []string{"User-Agent"},
+							},
+						},
+						Regex: "BadBot",
+					},
+				},
+				Action: "monitor",
+			},
+			{
+				ID: "2",
+				Conditions: []rule.Condition{
+					{
+						Inspector: "regex",
+						InspectTarget: []rule.InspectTarget{
+							{
+								Target: "http.request.header",
+								Keys:   []string{"User-Agent"},
+							},
+						},
+						Regex: "EvilBot",
+					},
+				},
+				Action: "block",
+			},
+		},
 	}
 
+	w := waf.NewWAF(r)
+
+	ctx := wafcontext.NewWafOperationContext(wafcontext.WithHttpRequstContext(wafcontext.HttpRequest{
+		URL:      "http://example.com",
+		Headers:  map[string][]string{"User-Agent": {"Go-http-client/1.1"}},
+		Body:     map[string][]string{"key": {"value"}},
+		ClientIP: "127.0.0.1",
+	}))
+
 	testCases := map[string]struct {
-		arrange     arrange
-		inspectData inspector.InspectData
-		expectBlock bool
+		data                inspector.InspectData
+		wantDetectionEvents []waf.DetectionEvent
+		wantError           error
 	}{
-		"detect with mock inspector": {
-			arrange: arrange{
-				rules: []rule.Rule{
-					{
-						ID:     "1",
-						Name:   "Detect Malicious URL by Mock Inspector",
-						Action: "block",
-						Conditions: []rule.Condition{
-							{
-								Inspector: "mock",
-								InspectTarget: []rule.InspectTarget{
-									{Target: "http.request.url"},
-								},
-							},
-						},
-					},
-				},
-			},
-			inspectData: inspector.InspectData{
-				Target: map[inspector.InspectTarget]types.InspectTargetValue{
-					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://malicious.com"),
-				},
-			},
-			expectBlock: true,
+		"no match": {
+			data: *inspector.NewInspectDataBuilder(ctx).WithHTTPRequestHeader(http.Header{
+				"User-Agent": []string{"Go-http-client/1.1"},
+			}).Build(),
+			wantDetectionEvents: nil,
+			wantError:           nil,
 		},
-		"detect with mock inspector, but monitor": {
-			arrange: arrange{
-				rules: []rule.Rule{
-					{
-						ID:     "1",
-						Name:   "Detect Malicious URL by Mock Inspector",
-						Action: "monitor",
-						Conditions: []rule.Condition{
-							{
-								Inspector: "mock",
-								InspectTarget: []rule.InspectTarget{
-									{Target: "http.request.url"},
-								},
-							},
-						},
+		"match": {
+			data: *inspector.NewInspectDataBuilder(ctx).WithHTTPRequestHeader(http.Header{
+				"User-Agent": []string{"BadBot"},
+			}).Build(),
+			wantDetectionEvents: []waf.DetectionEvent{
+				waf.NewDetectionEvent(ctx, waf.EvalResult{
+					Rule:      r.Rules[0],
+					InspectBy: "regex",
+					InspectResult: &inspector.InspectResult{
+						Target:  inspector.InspectTargetHttpRequestHeader,
+						Message: "Suspicious pattern detected: 'BadBot' matches regex 'BadBot'",
+						Payload: "BadBot",
 					},
-				},
+				}),
 			},
-			inspectData: inspector.InspectData{
-				Target: map[inspector.InspectTarget]types.InspectTargetValue{
-					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://malicious.com"),
-				},
-			},
-			expectBlock: false,
+			wantError: nil,
 		},
-		"when not malicious url, do not detect with mock inspector": {
-			arrange: arrange{
-				rules: []rule.Rule{
-					{
-						ID:     "2",
-						Name:   "Detect Malicious URL by Mock Inspector",
-						Action: "block",
-						Conditions: []rule.Condition{
-							{
-								Inspector:     "mock",
-								InspectTarget: []rule.InspectTarget{{Target: "http.request.url"}},
-							},
-						},
+		"when match, should return block error if action is block": {
+			data: *inspector.NewInspectDataBuilder(ctx).WithHTTPRequestHeader(http.Header{
+				"User-Agent": []string{"EvilBot"},
+			}).Build(),
+			wantDetectionEvents: []waf.DetectionEvent{
+				waf.NewDetectionEvent(ctx, waf.EvalResult{
+					Rule:      r.Rules[1],
+					InspectBy: "regex",
+					InspectResult: &inspector.InspectResult{
+						Target:  inspector.InspectTargetHttpRequestHeader,
+						Message: "Suspicious pattern detected: 'EvilBot' matches regex 'EvilBot'",
+						Payload: "EvilBot",
 					},
-				},
+				}),
 			},
-			inspectData: inspector.InspectData{
-				Target: map[inspector.InspectTarget]types.InspectTargetValue{
-					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://example.com"),
-				},
+			wantError: &action.BlockError{
+				RuleID:    "2",
+				Inspector: "regex",
 			},
-			expectBlock: false,
-		},
-		"If there are multiple conditions and only one of them is met, it should not be detected": {
-			arrange: arrange{
-				rules: []rule.Rule{
-					{
-						ID:     "3",
-						Name:   "Detect Malicious URL",
-						Action: "block",
-						Conditions: []rule.Condition{
-							{
-								Inspector:     "mock",
-								InspectTarget: []rule.InspectTarget{{Target: "http.request.url"}},
-							},
-							{
-								Inspector:     "nothing",
-								InspectTarget: []rule.InspectTarget{{Target: "http.request.url"}},
-							},
-						},
-					},
-				},
-			},
-			inspectData: inspector.InspectData{
-				Target: map[inspector.InspectTarget]types.InspectTargetValue{
-					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://example.com"),
-				},
-			},
-			expectBlock: false,
-		},
-		"Integration test: Regex inspector": {
-			arrange: arrange{
-				rules: []rule.Rule{
-					{
-						ID:     "4",
-						Name:   "Detect Malicious URL by Regex",
-						Action: "block",
-						Conditions: []rule.Condition{
-							{
-								Inspector:     "regex",
-								InspectTarget: []rule.InspectTarget{{Target: "http.request.url"}},
-								Regex:         "malicious",
-							},
-						},
-					},
-				},
-			},
-			inspectData: inspector.InspectData{
-				Target: map[inspector.InspectTarget]types.InspectTargetValue{
-					inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://malicious.com"),
-				},
-			},
-			expectBlock: true,
-		},
-		"Integration test: Regex inspector with specify key": {
-			arrange: arrange{
-				rules: []rule.Rule{
-					{
-						ID:     "4",
-						Name:   "Detect Malicious URL by Regex",
-						Action: "block",
-						Conditions: []rule.Condition{
-							{
-								Inspector:     "regex",
-								InspectTarget: []rule.InspectTarget{{Target: "http.request.header", Keys: []string{"Host"}}},
-								Regex:         "malicious\\.com",
-							},
-						},
-					},
-				},
-			},
-			inspectData: inspector.InspectData{
-				Target: map[inspector.InspectTarget]types.InspectTargetValue{
-					inspector.InspectTargetHttpRequestHeader: types.NewKeyValues(http.Header{
-						"Host": []string{"malicious.com"},
-					}),
-				},
-			},
-			expectBlock: true,
 		},
 	}
 
 	for name, tt := range testCases {
-		tt := tt
-
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			detectionEvents, err := w.Inspect(tt.data)
 
-			rules := &rule.RuleSet{
-				Version: "1.0",
-				Rules:   tt.arrange.rules,
+			assert.Equal(t, tt.wantError, err)
+
+			opt := cmpopts.IgnoreFields(waf.DetectionEvent{}, "DetectedAt")
+			if diff := cmp.Diff(tt.wantDetectionEvents, detectionEvents, opt); diff != "" {
+				t.Errorf("detectionEvents (-want +got):\n%s", diff)
 			}
-
-			waf := waf.NewWAF(rules)
-			waf.RegisterInspector("mock", &MockInspector{})
-			waf.RegisterInspector("nothing", &NothingInspector{})
-
-			err := waf.Inspect(tt.inspectData)
-
-			if tt.expectBlock {
-				assert.Error(t, err)
-				return
-			}
-
-			assert.NoError(t, err)
 		})
 	}
 }

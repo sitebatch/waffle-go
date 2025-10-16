@@ -23,12 +23,12 @@ func NewFileSecurity(rootOp operation.Operation) (listener.Listener, error) {
 }
 
 func (fileSec *FileSecurity) OnOpen(op *os.FileOperation, args os.FileOperationArg) {
-	op.Run(op, *inspector.NewInspectDataBuilder().WithFileOpenPath(args.Path).Build())
+	op.Run(op, *inspector.NewInspectDataBuilder(op.OperationContext()).WithFileOpenPath(args.Path).Build())
 }
 
 func (fileSec *FileSecurity) OnFinish(op *os.FileOperation, res *os.FileOperationResult) {
 	result := &waf.WafOperationResult{}
-	op.FinishInspect(result)
+	op.FinishInspect(op, result)
 
 	if result.IsBlock() {
 		res.BlockErr = result.BlockErr

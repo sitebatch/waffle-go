@@ -30,8 +30,9 @@ type Inspector interface {
 	// Name returns the name of the inspector
 	Name() InspectorName
 	// Inspect inspects the given data
-	// Inspector must return action.DetectionError if it detects something
-	Inspect(inspectData InspectData, inspectorArgs InspectorArgs) error
+	// Returns SuspiciousResult if the inspected data is determined to be an attack, otherwise returns nil
+	// If an error occurs during inspection, returns an error
+	Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error)
 	// IsSupportTarget returns whether the inspector supports the target
 	IsSupportTarget(target InspectTarget) bool
 }
@@ -41,6 +42,13 @@ type InspectorArgs interface {
 }
 
 type InspectTargetOptions struct {
-	Target string
+	Target InspectTarget
 	Params []string
+}
+
+// InspectResult represents the result of an inspection
+type InspectResult struct {
+	Target  InspectTarget // the target that was inspected
+	Payload string        // the payload deemed suspicious
+	Message string        // message describing why it is suspicious
 }

@@ -12,21 +12,23 @@ package operation
 
 import (
 	"context"
+	"crypto/rand"
 	"sync"
 )
 
-// rootOperation is the root operation of the application.
-// This operation has all event handlers registered and events are notified.
-var rootOperation Operation
+const EventIDLength = 16
 
-var rootOperationInitialized bool
+var (
+	// rootOperation is the root operation of the application process.
+	rootOperation Operation
+	// rootOperationInitialized indicates whether the root operation is initialized.
+	rootOperationInitialized bool
+)
 
 // Operation is the interface that wraps the basic operation methods.
 // An operation is a unit of application process (e.g. HTTP Request handling, Execute SQL Query, etc...) that can be started and finished.
 // When an operation is started or finished, events are notified to event listeners.
 type Operation interface {
-	// GetRootID returns the root operation ID.
-	GetRootID() string
 	// GetID returns the operation ID.
 	GetID() string
 	// Parent returns the parent operation.
@@ -101,14 +103,6 @@ func (o *operation) GetID() string {
 	return o.id
 }
 
-func (o *operation) GetRootID() string {
-	for current := o.unwrap().parent; current != nil; current = current.unwrap().parent {
-		return current.GetID()
-	}
-
-	return o.id
-}
-
 // Parent returns the parent operation.
 func (o *operation) Parent() Operation {
 	return o.parent
@@ -117,8 +111,23 @@ func (o *operation) Parent() Operation {
 // unwrap returns the operation itself.
 func (o *operation) unwrap() *operation { return o }
 
-// FindOperationFromContext returns the operation from the context.
-// This is used to share operations between application processes such as executing SQL queries and sending HTTP requests.
+/*
+FindOperationFromContext returns the operation from the context.
+This is used to retrieve the current Operation from the received HTTP request or from the context.Context when executing SQL queries.
+
+A more specific use case is to issue a new Operation with the current acquired Operation as its parent:
+
+	func handler(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		parentOp, _ := operation.FindOperationFromContext(ctx)
+		op := &SomeOperation{
+			Operation: operation.NewOperation(parentOp),
+		}
+		operation.StartOperation(op, SomeOperationArg{...})
+		// do something...
+		operation.FinishOperation(op, SomeOperationResult{...})
+	}
+*/
 func FindOperationFromContext(ctx context.Context) (Operation, bool) {
 	if ctx == nil {
 		return nil, false
@@ -129,7 +138,7 @@ func FindOperationFromContext(ctx context.Context) (Operation, bool) {
 }
 
 // FindOperation returns the Operation of T if the context has the Operation of T.
-// This is used to identify the relationship between application processes.
+// Used to retrieve the desired operation when multiple operations are being executed.
 func FindOperation[T any, O interface {
 	Operation
 	*T
@@ -148,6 +157,12 @@ func FindOperation[T any, O interface {
 	return nil, false
 }
 
+// SetOperation sets the operation to the context.
+// The event listener of the Operation is not called in this call.
+func SetOperation(ctx context.Context, op Operation) context.Context {
+	return context.WithValue(ctx, operationContextKey{}, op)
+}
+
 // StartOperation starts the operation.
 // This function notifies the event listeners of the parent operation.
 func StartOperation[O Operation, E ArgOf[O]](op O, args E) {
@@ -156,15 +171,10 @@ func StartOperation[O Operation, E ArgOf[O]](op O, args E) {
 	}
 }
 
-// StartAndRegisterOperation starts the operation and registers the operation to the context.
-func StartAndRegisterOperation[O Operation, E ArgOf[O]](ctx context.Context, op O, args E) context.Context {
+// StartAndSetOperation starts the operation and sets it to the context.
+func StartAndSetOperation[O Operation, E ArgOf[O]](ctx context.Context, op O, args E) context.Context {
 	StartOperation(op, args)
-	return RegisterOperation(ctx, op)
-}
-
-// RegisterOperation registers the operation to the context.
-func RegisterOperation(ctx context.Context, op Operation) context.Context {
-	return context.WithValue(ctx, operationContextKey{}, op)
+	return SetOperation(ctx, op)
 }
 
 // FinishOperation finishes the operation.
@@ -181,7 +191,8 @@ func FinishOperation[O Operation, E ResultOf[O]](op O, results E) {
 	}
 }
 
-// On registers the event listener to the operation.
+// OnStart registers the event listener to the operation.
+// The event listener is called when the operation is started with StartOperation or StartAndSetOperation.
 func OnStart[O Operation, E ArgOf[O]](op Operation, l EventListener[O, E]) {
 	o := op.unwrap()
 	o.mu.RLock()
@@ -191,6 +202,7 @@ func OnStart[O Operation, E ArgOf[O]](op Operation, l EventListener[O, E]) {
 }
 
 // OnFinish registers the event listener to the operation.
+// The event listener is called when the operation is finished with FinishOperation.
 func OnFinish[O Operation, E ResultOf[O]](op Operation, l EventListener[O, E]) {
 	o := op.unwrap()
 	o.mu.RLock()
@@ -222,4 +234,14 @@ func emitEvent[O Operation, T any](r *eventListenerManager, op O, v T) {
 	for _, listener := range r.listeners[listenerID[EventListener[O, T]]{}] {
 		listener.(EventListener[O, T])(op, v)
 	}
+}
+
+func generateID() string {
+	s := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	b := make([]byte, EventIDLength)
+	_, _ = rand.Read(b)
+	for i := range b {
+		b[i] = s[int(b[i])%len(s)]
+	}
+	return string(b)
 }

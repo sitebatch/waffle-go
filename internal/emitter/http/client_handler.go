@@ -51,7 +51,7 @@ func ProtectRoundTrip(ctx context.Context, url string) error {
 	if parentOp, ok := parent.(*HTTPClientRequestOperation); ok {
 		wafop = parentOp.WafOperation
 	} else {
-		wafop, _ = waf.StartWafOperation(ctx)
+		wafop, _ = waf.InitializeWafOperation(ctx)
 	}
 
 	op := &HTTPClientRequestOperation{

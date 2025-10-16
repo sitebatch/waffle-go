@@ -1,7 +1,6 @@
 package inspector
 
 import (
-	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector/sqli"
 )
 
@@ -26,27 +25,35 @@ func (r *SQLiInspector) IsSupportTarget(target InspectTarget) bool {
 	return target == InspectTargetSQLQuery
 }
 
-func (r *SQLiInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) error {
+func (r *SQLiInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
 	inspectValue := inspectData.Target[InspectTargetSQLQuery]
 
 	if inspectValue == nil {
-		return nil
+		return nil, nil
 	}
 
 	query := inspectValue.GetValue()
 
 	isSQLi, err := sqli.IsWhereTautologyFull(query)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if isSQLi {
-		return &action.DetectionError{Reason: "detected sql injection, because of where tautology"}
+		return &InspectResult{
+			Target:  InspectTargetSQLQuery,
+			Payload: query,
+			Message: "detected sql injection, because of where tautology",
+		}, nil
 	}
 
 	if err = sqli.IsQueryCommentInjection(query); err != nil {
-		return &action.DetectionError{Reason: "detectd sql injection, because of query comment injection"}
+		return &InspectResult{
+			Target:  InspectTargetSQLQuery,
+			Payload: query,
+			Message: "detectd sql injection, because of query comment injection",
+		}, nil
 	}
 
-	return nil
+	return nil, nil
 }

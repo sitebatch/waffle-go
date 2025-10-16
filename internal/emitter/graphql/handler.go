@@ -35,7 +35,7 @@ func StartGraphQLRequestHandlerOperation(ctx context.Context, args GraphqlReques
 	if parentOp, ok := parent.(*http.HTTPRequestHandlerOperation); ok {
 		wafop = parentOp.WafOperation
 	} else {
-		wafop, _ = waf.StartWafOperation(ctx)
+		wafop, _ = waf.InitializeWafOperation(ctx)
 	}
 
 	op := &GraphqlRequestHandlerOperation{
@@ -43,7 +43,7 @@ func StartGraphQLRequestHandlerOperation(ctx context.Context, args GraphqlReques
 		WafOperation: wafop,
 	}
 
-	return op, operation.StartAndRegisterOperation(ctx, op, args)
+	return op, operation.StartAndSetOperation(ctx, op, args)
 }
 
 func (op *GraphqlRequestHandlerOperation) Finish(res *GraphqlRequestHandlerOperationResult) {

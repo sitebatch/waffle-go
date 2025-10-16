@@ -3,33 +3,33 @@ package waf
 import (
 	"context"
 	"errors"
-	"fmt"
+	"sync"
 
 	"github.com/sitebatch/waffle-go/action"
+	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/log"
 	"github.com/sitebatch/waffle-go/internal/operation"
 	"github.com/sitebatch/waffle-go/internal/rule"
 )
 
-// WafOperation is an operation that inspects the request data and blocks the request if it violates the WAF rules.
+// WafOperation is an operation that represents a WAF inspection process.
 type WafOperation struct {
 	operation.Operation
-	Waf WAF
 
-	wafOperationContext *WafOperationContext
-	blockErr            *action.BlockError
+	Waf                 WAF
+	wafOperationContext *wafcontext.WafOperationContext
+
+	eventRecorder *EventRecorder
+	blockErr      *action.BlockError
+
+	mu sync.Mutex
 }
 
 type WafOperationArg struct{}
 type WafOperationResult struct {
 	BlockErr        *action.BlockError
-	DetectionEvents DetectionEvents
-}
-
-type WafOperationContext struct {
-	URL      string
-	ClientIP string
+	DetectionEvents []DetectionEvent
 }
 
 func (WafOperationArg) IsArgOf(*WafOperation)       {}
@@ -39,53 +39,60 @@ func (r *WafOperationResult) IsBlock() bool {
 	return r.BlockErr != nil
 }
 
-type Option func(*WafOperation)
+type WafOperationContextOption func(*WafOperation)
 
-func WithOperationContext(w WafOperationContext) Option {
+func WithHttpRequstContext(req wafcontext.HttpRequest) WafOperationContextOption {
 	return func(o *WafOperation) {
-		o.wafOperationContext = &w
+		if o.wafOperationContext == nil {
+			o.wafOperationContext = wafcontext.NewWafOperationContext()
+		}
+
+		o.wafOperationContext.WithWafOperationContext(wafcontext.WithHttpRequstContext(req))
 	}
 }
 
-// StartWafOperation creates a new WafOperation and returns it with the context.
-// This operation should be created at the top level of processing HTTP requests and propagated to subsequent processing.
-func StartWafOperation(ctx context.Context, opts ...Option) (*WafOperation, context.Context) {
-	if !operation.IsRootOperationInitialized() {
-		panic("waffle is not initialized, forgot to call waffle.Start()?")
+func NewWafOperation(parent operation.Operation, waf WAF, wafOpCtx *wafcontext.WafOperationContext) *WafOperation {
+	return &WafOperation{
+		Operation:           operation.NewOperation(parent),
+		Waf:                 waf,
+		eventRecorder:       NewEventRecorder(),
+		wafOperationContext: wafOpCtx,
 	}
+}
 
+// InitializeWafOperation initializes a WAF operation and sets it in the context.
+// The returned context contains the initialized WAF operation.
+func InitializeWafOperation(ctx context.Context, opts ...WafOperationContextOption) (*WafOperation, context.Context) {
 	parent, _ := operation.FindOperationFromContext(ctx)
-
-	op := &WafOperation{
-		Operation: operation.NewOperation(parent),
-		Waf:       NewWAF(rule.LoadedRule),
-	}
+	wafCtx := wafcontext.NewWafOperationContext()
+	op := NewWafOperation(parent, NewWAF(rule.LoadedRule), wafCtx)
 
 	for _, opt := range opts {
 		opt(op)
 	}
 
-	return op, operation.StartAndRegisterOperation(ctx, op, WafOperationArg{})
+	return op, operation.SetOperation(ctx, op)
 }
 
 // Run inspects the request data and blocks the request if it violates the WAF rules.
 func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.InspectData) {
-	err := wafOp.Waf.Inspect(inspectData)
+	events, err := wafOp.Waf.Inspect(inspectData)
+
+	wafOp.mu.Lock()
+	defer wafOp.mu.Unlock()
+
+	if len(events) > 0 {
+		wafOp.snapshot(op, events)
+	}
+
 	if err != nil {
 		var blockError *action.BlockError
 		if errors.As(err, &blockError) {
 			wafOp.blockErr = blockError
-			wafOp.log("block", fmt.Sprintf("Threat blocked: %s", blockError.Error()), blockError.RuleID, blockError.Inspector)
 			return
 		}
 
 		log.Error("failed to inspect", "error", err)
-	}
-
-	for ruleID, event := range wafOp.Waf.GetDetectionEvents() {
-		for inspector, result := range event {
-			wafOp.log("detect", fmt.Sprintf("Threat detected: %s", result.reason.Error()), ruleID, inspector)
-		}
 	}
 }
 
@@ -95,26 +102,47 @@ func (wafOp *WafOperation) IsBlock() bool {
 }
 
 // FinishInspect finishes the inspection and sets the result.
-func (wafOp *WafOperation) FinishInspect(res *WafOperationResult) {
+func (wafOp *WafOperation) FinishInspect(op operation.Operation, res *WafOperationResult) {
+	wafOp.mu.Lock()
+	defer wafOp.mu.Unlock()
+
 	res.BlockErr = wafOp.blockErr
-	res.DetectionEvents = wafOp.Waf.GetDetectionEvents()
+
+	events := wafOp.eventRecorder.Load()
+
+	if events != nil {
+		res.DetectionEvents = events.Events()
+
+		if err := GetExporter().Export(context.Background(), events); err != nil {
+			log.Error("failed to export WAF event", "error", err)
+		}
+
+		wafOp.eventRecorder.Clear()
+	}
 }
 
-func (wafOp *WafOperation) log(action string, msg string, ruleID string, inspector string) {
-	var clientIP string
-	var url string
+// SetMeta sets metadata to the WAF operation context.
+func (wafOp *WafOperation) SetMeta(key string, value string) {
+	wafOp.mu.Lock()
+	defer wafOp.mu.Unlock()
 
-	if wafOp.wafOperationContext != nil {
-		clientIP = wafOp.wafOperationContext.ClientIP
-		url = wafOp.wafOperationContext.URL
+	wafOp.wafOperationContext.SetMeta(key, value)
+}
+
+// OperationContext returns the WAF operation context.
+func (wafOp *WafOperation) OperationContext() *wafcontext.WafOperationContext {
+	return wafOp.wafOperationContext
+}
+
+func (wafOp *WafOperation) snapshot(op operation.Operation, events []DetectionEvent) {
+	s := &snapshot{
+		events:    events,
+		operation: op,
 	}
 
-	switch action {
-	case "block":
-		log.Info(msg, "ruleID", ruleID, "inspector", inspector, "clientIP", clientIP, "url", url)
-	case "detect":
-		log.Info(msg, "ruleID", ruleID, "inspector", inspector, "clientIP", clientIP, "url", url)
-	default:
-		log.Error("unknown action", "action", action)
-	}
+	wafOp.eventRecorder.Store(s)
+}
+
+func (wafOp *WafOperation) DetectionEvents() ReadOnlyDetectionEvents {
+	return wafOp.eventRecorder.Load()
 }

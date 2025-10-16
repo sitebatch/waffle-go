@@ -23,12 +23,12 @@ func NewSQLSecurity(rootOp operation.Operation) (listener.Listener, error) {
 }
 
 func (sqlSec *SQLSecurity) OnQueryOrExec(op *sql.SQLOperation, args sql.SQLOperationArg) {
-	op.Run(op, *inspector.NewInspectDataBuilder().WithSQLQuery(args.Query).Build())
+	op.Run(op, *inspector.NewInspectDataBuilder(op.OperationContext()).WithSQLQuery(args.Query).Build())
 }
 
 func (sqlSec *SQLSecurity) OnFinish(op *sql.SQLOperation, res *sql.SQLOperationResult) {
 	result := &waf.WafOperationResult{}
-	op.FinishInspect(result)
+	op.FinishInspect(op, result)
 
 	if result.IsBlock() {
 		res.BlockErr = result.BlockErr

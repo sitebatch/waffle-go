@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/inspector/types"
 )
 
@@ -43,19 +44,26 @@ func (t InspectTarget) IsSupportKeyValueFiltering() bool {
 }
 
 type InspectData struct {
-	Target map[InspectTarget]types.InspectTargetValue
+	WafOperationContext *wafcontext.WafOperationContext
+	Target              map[InspectTarget]types.InspectTargetValue
 }
 
 type InspectDataBuilder struct {
 	InspectData
 }
 
-func NewInspectDataBuilder() *InspectDataBuilder {
+func NewInspectDataBuilder(wafOpCtx *wafcontext.WafOperationContext) *InspectDataBuilder {
 	return &InspectDataBuilder{
 		InspectData: InspectData{
-			Target: make(map[InspectTarget]types.InspectTargetValue),
+			WafOperationContext: wafOpCtx,
+			Target:              make(map[InspectTarget]types.InspectTargetValue),
 		},
 	}
+}
+
+func (b *InspectDataBuilder) WithWafOperationContext(opCtx *wafcontext.WafOperationContext) *InspectDataBuilder {
+	b.WafOperationContext = opCtx
+	return b
 }
 
 func (b *InspectDataBuilder) WithHTTPRequestURL(url string) *InspectDataBuilder {

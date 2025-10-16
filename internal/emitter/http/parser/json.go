@@ -22,7 +22,7 @@ func (jsonParser) Parse(req *http.Request) (map[string][]string, error) {
 
 	req.Body = io.NopCloser(bytes.NewBuffer(b))
 
-	var j map[string]interface{}
+	var j map[string]any
 
 	if err := json.Unmarshal(b, &j); err != nil {
 		return nil, err

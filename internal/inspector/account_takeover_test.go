@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/inspector/types"
 	"github.com/stretchr/testify/assert"
@@ -108,10 +107,12 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 	}
 
 	for name, tt := range testCases {
-		tt := tt
-
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			var err error
+			var suspicious *inspector.InspectResult
+
 			for i := 0; i < tt.reqSize; i++ {
 				i := inspector.NewAccountTakeoverInspector()
 
@@ -123,18 +124,18 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 					tt.arrange.inspectData.Target[inspector.InspectTargetAccountTakeover].(*types.KeyValues).Values["user_id"][0] = generateDummyUserID(t)
 				}
 
-				err = i.Inspect(tt.arrange.inspectData, tt.arrange.inspectorArgs)
+				suspicious, err = i.Inspect(tt.arrange.inspectData, tt.arrange.inspectorArgs)
 			}
 
 			if tt.detected {
-				assert.Error(t, err)
+				assert.NoError(t, err)
+				assert.NotNil(t, suspicious)
 
-				var detectionError *action.DetectionError
-				assert.ErrorAs(t, err, &detectionError)
 				return
 			}
 
 			assert.NoError(t, err)
+			assert.Nil(t, suspicious)
 		})
 	}
 }

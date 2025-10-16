@@ -1,11 +1,11 @@
 package inspector
 
 import (
+	"errors"
 	"fmt"
 
 	regexp "github.com/wasilibs/go-re2"
 
-	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector/types"
 	"github.com/sitebatch/waffle-go/internal/log"
 )
@@ -32,19 +32,19 @@ func (r *RegexInspector) IsSupportTarget(target InspectTarget) bool {
 	return true
 }
 
-func (r *RegexInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) error {
+func (r *RegexInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
 	args, ok := inspectorArgs.(*RegexInspectorArgs)
 	if !ok {
-		return fmt.Errorf("invalid args")
+		return nil, errors.New("invalid args, not RegexInspectorArgs")
 	}
 
-	for _, target := range args.InspectTargetOptions {
-		if _, ok := inspectData.Target[InspectTarget(target.Target)]; !ok {
+	for _, opt := range args.InspectTargetOptions {
+		if _, ok := inspectData.Target[opt.Target]; !ok {
 			continue
 		}
 
-		values := inspectData.Target[InspectTarget(target.Target)].GetValues(
-			types.WithParamNames(target.Params),
+		values := inspectData.Target[opt.Target].GetValues(
+			types.WithParamNames(opt.Params),
 		)
 
 		for _, value := range values {
@@ -55,10 +55,14 @@ func (r *RegexInspector) Inspect(inspectData InspectData, inspectorArgs Inspecto
 			}
 
 			if matched {
-				return &action.DetectionError{Reason: fmt.Sprintf("detected match %s", args.Regex)}
+				return &InspectResult{
+					Target:  opt.Target,
+					Payload: value,
+					Message: fmt.Sprintf("Suspicious pattern detected: '%s' matches regex '%s'", value, args.Regex),
+				}, nil
 			}
 		}
 	}
 
-	return nil
+	return nil, nil
 }

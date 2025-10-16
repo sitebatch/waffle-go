@@ -25,12 +25,12 @@ func NewAccountTakeoverSecurity(rootOp operation.Operation) (listener.Listener, 
 }
 
 func (s *AccountTakeoverSecurity) OnLogin(op *account_takeover.ProtectLoginOperation, args account_takeover.ProtectLoginOperationArg) {
-	op.Run(op, *inspector.NewInspectDataBuilder().WithAccountTakeover(args.ClientIP, args.UserID).Build())
+	op.Run(op, *inspector.NewInspectDataBuilder(op.OperationContext()).WithAccountTakeover(args.ClientIP, args.UserID).Build())
 }
 
 func (s *AccountTakeoverSecurity) OnFinish(op *account_takeover.ProtectLoginOperation, res *account_takeover.ProtectLoginOperationResult) {
 	result := &waf.WafOperationResult{}
-	op.FinishInspect(result)
+	op.FinishInspect(op, result)
 
 	if result.IsBlock() {
 		res.BlockErr = result.BlockErr

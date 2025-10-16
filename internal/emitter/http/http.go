@@ -1,14 +1,15 @@
 package http
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/sitebatch/waffle-go/internal/emitter/http/parser"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
-	"github.com/sitebatch/waffle-go/internal/log"
 	"github.com/sitebatch/waffle-go/internal/operation"
 )
 
@@ -22,6 +23,7 @@ type HTTPRequestHandlerOperationArg struct {
 	Path        string
 	Headers     map[string][]string
 	QueryValues map[string][]string
+	RawBody     []byte
 	Body        map[string][]string
 	ClientIP    string
 }
@@ -39,6 +41,7 @@ func StartHTTPRequestHandlerOperation(ctx context.Context, args HTTPRequestHandl
 		wafOp, ctx = waf.InitializeWafOperation(ctx, waf.WithHttpRequstContext(wafcontext.HttpRequest{
 			URL:      args.URL,
 			Headers:  args.Headers,
+			RawBody:  args.RawBody,
 			Body:     args.Body,
 			ClientIP: args.ClientIP,
 		}))
@@ -56,10 +59,10 @@ func (op *HTTPRequestHandlerOperation) Finish(res *HTTPRequestHandlerOperationRe
 	operation.FinishOperation(op, res)
 }
 
-func buildHttpRequestHandlerOperationArg(r *http.Request) HTTPRequestHandlerOperationArg {
+func BuildHttpRequestHandlerOperationArg(r *http.Request) HTTPRequestHandlerOperationArg {
+	rawBody := readBody(r)
 	body, err := parser.ParseHTTPRequestBody(r)
-	if err != nil {
-		log.Error("failed to parse http request body", "error", err)
+	if err != nil || body == nil {
 		body = map[string][]string{}
 	}
 	return HTTPRequestHandlerOperationArg{
@@ -67,6 +70,7 @@ func buildHttpRequestHandlerOperationArg(r *http.Request) HTTPRequestHandlerOper
 		Path:        r.URL.Path,
 		Headers:     r.Header,
 		QueryValues: r.URL.Query(),
+		RawBody:     rawBody,
 		Body:        body,
 		ClientIP:    r.RemoteAddr,
 	}
@@ -83,4 +87,22 @@ func BuildFullURL(r *http.Request) string {
 	}
 
 	return fmt.Sprintf("%s://%s%s?%s", scheme, r.Host, r.URL.Path, r.URL.RawQuery)
+}
+
+func readBody(r *http.Request) []byte {
+	ctx := r.Context()
+	copy := r.Clone(ctx)
+	if copy.Body == nil {
+		return nil
+	}
+
+	b, err := io.ReadAll(copy.Body)
+	if err != nil {
+		return nil
+	}
+	defer copy.Body.Close()
+
+	r.Body = io.NopCloser(bytes.NewBuffer(b))
+
+	return b
 }

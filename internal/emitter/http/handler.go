@@ -13,7 +13,7 @@ type Options struct {
 
 func handle(w http.ResponseWriter, r *http.Request, options Options) (http.ResponseWriter, *http.Request, bool, func()) {
 	ww, waffleResponseWriter := action.NewWaffleResponseWriter(w)
-	op, ctx := StartHTTPRequestHandlerOperation(r.Context(), buildHttpRequestHandlerOperationArg(r))
+	op, ctx := StartHTTPRequestHandlerOperation(r.Context(), BuildHttpRequestHandlerOperationArg(r))
 	rr := r.WithContext(ctx)
 
 	blocked := false

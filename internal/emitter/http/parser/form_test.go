@@ -17,7 +17,7 @@ func TestFormParser_Parse(t *testing.T) {
 		body     string
 		expected map[string][]string
 	}{
-		"success": {
+		"simple": {
 			body: "key=value",
 			expected: map[string][]string{
 				"key": {"value"},
@@ -39,8 +39,6 @@ func TestFormParser_Parse(t *testing.T) {
 	}
 
 	for name, tc := range testCases {
-		tc := tc
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -89,8 +87,6 @@ value2
 	}
 
 	for name, tc := range testCases {
-		tc := tc
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

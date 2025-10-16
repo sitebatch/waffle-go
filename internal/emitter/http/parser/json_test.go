@@ -3,6 +3,7 @@ package parser_test
 import (
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -57,17 +58,11 @@ func TestJSONParser_Parse(t *testing.T) {
 	}
 
 	for name, tc := range testCases {
-		tc := tc
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			req := &http.Request{
-				Method: http.MethodPost,
-				Header: http.Header{
-					"Content-Type": []string{"application/json"},
-				},
-				Body: io.NopCloser(strings.NewReader(tc.body)),
-			}
+
+			req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tc.body))
+			req.Header.Set("Content-Type", "application/json")
 
 			got, err := parser.ParseHTTPRequestBody(req)
 			if tc.expected == nil {

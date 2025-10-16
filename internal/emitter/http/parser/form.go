@@ -19,7 +19,7 @@ func (formParser) Parse(req *http.Request) (map[string][]string, error) {
 		return nil, err
 	}
 
-	return req.Form, nil
+	return req.PostForm, nil
 }
 
 func (multipartParser) Parse(req *http.Request) (map[string][]string, error) {

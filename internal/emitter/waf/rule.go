@@ -3,8 +3,8 @@ package waf
 import (
 	"errors"
 
+	"github.com/sitebatch/waffle-go/handler"
 	"github.com/sitebatch/waffle-go/internal/inspector"
-	"github.com/sitebatch/waffle-go/internal/log"
 	"github.com/sitebatch/waffle-go/internal/rule"
 	"golang.org/x/time/rate"
 )
@@ -33,7 +33,7 @@ func (e *RuleEvaluator) Eval(r rule.Rule, data inspector.InspectData) ([]*EvalRe
 	for _, condition := range r.Conditions {
 		result, err := e.runInspector(condition, data)
 		if err != nil {
-			log.Error(err, "Error running inspector", "inspector", condition.Inspector)
+			handler.GetErrorHandler().HandleError(err)
 			continue
 		}
 

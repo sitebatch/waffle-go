@@ -6,9 +6,9 @@ import (
 	"sync"
 
 	"github.com/sitebatch/waffle-go/action"
+	"github.com/sitebatch/waffle-go/handler"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/inspector"
-	"github.com/sitebatch/waffle-go/internal/log"
 	"github.com/sitebatch/waffle-go/internal/operation"
 	"github.com/sitebatch/waffle-go/internal/rule"
 )
@@ -92,7 +92,7 @@ func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.Ins
 			return
 		}
 
-		log.Error(err, "failed to inspect")
+		handler.GetErrorHandler().HandleError(err)
 	}
 }
 
@@ -114,7 +114,7 @@ func (wafOp *WafOperation) FinishInspect(op operation.Operation, res *WafOperati
 		res.DetectionEvents = events.Events()
 
 		if err := GetExporter().Export(context.Background(), events); err != nil {
-			log.Error(err, "failed to export WAF event")
+			handler.GetErrorHandler().HandleError(err)
 		}
 
 		wafOp.eventRecorder.Clear()

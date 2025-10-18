@@ -6,8 +6,8 @@ import (
 
 	regexp "github.com/wasilibs/go-re2"
 
+	"github.com/sitebatch/waffle-go/handler"
 	"github.com/sitebatch/waffle-go/internal/inspector/types"
-	"github.com/sitebatch/waffle-go/internal/log"
 )
 
 type RegexInspector struct{}
@@ -50,7 +50,7 @@ func (r *RegexInspector) Inspect(inspectData InspectData, inspectorArgs Inspecto
 		for _, value := range values {
 			matched, err := regexp.MatchString(args.Regex, value)
 			if err != nil {
-				log.Error(err, "regex compile error, skip inspect", "regex", args.Regex)
+				handler.GetErrorHandler().HandleError(err)
 				continue
 			}
 

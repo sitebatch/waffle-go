@@ -1,9 +1,10 @@
 package handler
 
 import (
-	"log"
 	"sync"
 	"sync/atomic"
+
+	"github.com/sitebatch/waffle-go/internal/log"
 )
 
 var (
@@ -40,7 +41,7 @@ type (
 var _ ErrorHandler = (*LogErrorHandler)(nil)
 
 func (d *LogErrorHandler) HandleError(err error) {
-	log.Print(err)
+	log.Error(err, "failed to process operation")
 }
 
 func defaultErrorHandlerHolder() *atomic.Value {

@@ -101,15 +101,19 @@ func Start(opts ...Options) error {
 	w := &Waffle{
 		overrideRulesJSON: c.OverrideRulesJSON,
 	}
-	SetExporterProvider(exporter.ExporterNameStdout)
-	err := w.start()
-	if err != nil {
+
+	if err := SetExporterProvider(exporter.ExporterNameStdout); err != nil {
+		return err
+	}
+
+	if err := w.start(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
+// SetLogger sets a global logger for Waffle.
 func SetLogger(logger logr.Logger) {
 	log.SetLogger(logger)
 }

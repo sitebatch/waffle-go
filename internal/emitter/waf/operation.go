@@ -92,7 +92,7 @@ func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.Ins
 			return
 		}
 
-		log.Error("failed to inspect", "error", err)
+		log.Error(err, "failed to inspect")
 	}
 }
 
@@ -114,7 +114,7 @@ func (wafOp *WafOperation) FinishInspect(op operation.Operation, res *WafOperati
 		res.DetectionEvents = events.Events()
 
 		if err := GetExporter().Export(context.Background(), events); err != nil {
-			log.Error("failed to export WAF event", "error", err)
+			log.Error(err, "failed to export WAF event")
 		}
 
 		wafOp.eventRecorder.Clear()

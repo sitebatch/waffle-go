@@ -2,7 +2,9 @@ package waffle
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/go-logr/logr"
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf/exporter"
@@ -19,12 +21,11 @@ import (
 )
 
 type Config struct {
-	Debug             bool
 	OverrideRulesJSON []byte
 }
 
 func defaultConfig() *Config {
-	return &Config{Debug: false}
+	return &Config{}
 }
 
 type Waffle struct {
@@ -46,7 +47,6 @@ func (w *Waffle) start() error {
 		if err := rule.LoadRules(w.overrideRulesJSON); err != nil {
 			return err
 		}
-		log.Info("waffle: loaded custom rules")
 	} else {
 		if err := rule.LoadDefaultRules(); err != nil {
 			return err
@@ -73,14 +73,6 @@ func (w *Waffle) start() error {
 
 type Options func(*Config)
 
-func WithDebug() Options {
-	return func(c *Config) {
-		c.Debug = true
-		log.SetLevel(log.LevelDebug)
-		log.Debug("waffle: debug mode enabled")
-	}
-}
-
 func WithOverrideRules(ruleJSON []byte) Options {
 	return func(c *Config) {
 		c.OverrideRulesJSON = ruleJSON
@@ -98,7 +90,7 @@ func WithCustomBlockedResponse(responseBodyHTML []byte, responseBodyJSON []byte)
 	}
 }
 
-func Start(opts ...Options) {
+func Start(opts ...Options) error {
 	action.InitResponseWriterFeature()
 	c := defaultConfig()
 	for _, opt := range opts {
@@ -111,19 +103,23 @@ func Start(opts ...Options) {
 	SetExporterProvider(exporter.ExporterNameStdout)
 	err := w.start()
 	if err != nil {
-		log.Error("Failed to start waffle: %v", err)
-		return
+		return err
 	}
 
-	log.Info("waffle: started")
+	return nil
 }
 
-func SetExporterProvider(name waf.ExporterName) {
+func SetLogger(logger logr.Logger) {
+	log.SetLogger(logger)
+}
+
+func SetExporterProvider(name waf.ExporterName) error {
 	switch name {
 	case exporter.ExporterNameStdout:
 		waf.SetExporter(exporter.NewStdoutExporter())
+		return nil
 	default:
-		log.Error("unknown exporter name: %s", name)
+		return fmt.Errorf("unknown exporter name: %s", name)
 	}
 }
 

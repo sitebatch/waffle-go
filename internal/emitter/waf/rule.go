@@ -33,7 +33,7 @@ func (e *RuleEvaluator) Eval(r rule.Rule, data inspector.InspectData) ([]*EvalRe
 	for _, condition := range r.Conditions {
 		result, err := e.runInspector(condition, data)
 		if err != nil {
-			log.Error("Error running inspector", "inspector", condition.Inspector, "error", err)
+			log.Error(err, "Error running inspector", "inspector", condition.Inspector)
 			continue
 		}
 
@@ -105,8 +105,7 @@ func (e *RuleEvaluator) runInspector(condition rule.Condition, data inspector.In
 		})
 
 	default:
-		log.Warn("Unknown inspector", "name", i.Name())
-		return i.Inspect(data, nil)
+		return nil, errors.New("unknown inspector: " + condition.Inspector)
 	}
 }
 

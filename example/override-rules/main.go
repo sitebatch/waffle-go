@@ -12,7 +12,7 @@ import (
 var rulesJSON []byte
 
 func main() {
-	waffle.Start(waffle.WithDebug(), waffle.WithOverrideRules(rulesJSON))
+	waffle.Start(waffle.WithOverrideRules(rulesJSON))
 
 	srv := &http.Server{
 		Addr:    ":8000",

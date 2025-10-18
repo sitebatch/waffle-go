@@ -18,7 +18,7 @@ func main() {
    	mux := http.NewServeMux()
 	handler := waffleHttp.WafMiddleware(mux)
 
-	waffle.Start(waffle.WithDebug())
+	waffle.Start()
 
 	srv := &http.Server{
 		Addr:    ":8000",

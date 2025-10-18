@@ -51,7 +51,7 @@ func (m *MatchListInspector) Inspect(inspectData InspectData, inspectorArgs Insp
 			for _, listValue := range args.List {
 				re, err := regexp.Compile(listValue)
 				if err != nil {
-					log.Error("regex compile error, skip inspect: %v", err)
+					log.Error(err, "regex compile error, skip inspect", "regex", listValue)
 					continue
 				}
 

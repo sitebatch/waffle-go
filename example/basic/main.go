@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	waffle.Start(waffle.WithDebug())
+	waffle.Start()
 
 	srv := &http.Server{
 		Addr:    ":8000",

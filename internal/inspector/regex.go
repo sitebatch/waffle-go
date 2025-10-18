@@ -50,7 +50,7 @@ func (r *RegexInspector) Inspect(inspectData InspectData, inspectorArgs Inspecto
 		for _, value := range values {
 			matched, err := regexp.MatchString(args.Regex, value)
 			if err != nil {
-				log.Error("regex compile error, skip inspect: %v", err)
+				log.Error(err, "regex compile error, skip inspect", "regex", args.Regex)
 				continue
 			}
 

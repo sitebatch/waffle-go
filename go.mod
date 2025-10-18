@@ -6,6 +6,9 @@ require (
 	github.com/99designs/gqlgen v0.17.68
 	github.com/ebitengine/purego v0.9.0
 	github.com/gin-gonic/gin v1.10.0
+	github.com/go-logr/logr v1.4.3
+	github.com/go-logr/stdr v1.2.2
+	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/labstack/echo/v4 v4.13.3
@@ -34,7 +37,6 @@ require (
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

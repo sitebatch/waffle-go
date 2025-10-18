@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/sitebatch/waffle-go/action"
+	"github.com/sitebatch/waffle-go/handler"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf/exporter"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
@@ -111,6 +112,16 @@ func Start(opts ...Options) error {
 
 func SetLogger(logger logr.Logger) {
 	log.SetLogger(logger)
+}
+
+// SetErrorHandler sets a global error handler for Waffle.
+//
+// Waffle monitors applications for potential attacks by inspecting input values and generating test data.
+// Typically, the operations performed by Waffle are not essential to an application's core business logic.
+// Therefore, errors occurring within Waffle are designed to not affect the application's normal operation.
+// By default, errors are logged, but you can define custom logic to handle and record these errors for monitoring purposes.
+func SetErrorHandler(h handler.ErrorHandler) {
+	handler.SetErrorHandler(h)
 }
 
 func SetExporterProvider(name waf.ExporterName) error {

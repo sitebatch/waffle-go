@@ -2,14 +2,12 @@ package waffle
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-logr/logr"
 	"github.com/sitebatch/waffle-go/action"
+	"github.com/sitebatch/waffle-go/exporter"
 	"github.com/sitebatch/waffle-go/handler"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
-	"github.com/sitebatch/waffle-go/internal/emitter/waf/exporter"
-	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/listener"
 	"github.com/sitebatch/waffle-go/internal/listener/account_takeover"
 	"github.com/sitebatch/waffle-go/internal/listener/graphql"
@@ -19,6 +17,7 @@ import (
 	"github.com/sitebatch/waffle-go/internal/log"
 	"github.com/sitebatch/waffle-go/internal/operation"
 	"github.com/sitebatch/waffle-go/internal/rule"
+	"github.com/sitebatch/waffle-go/waf/wafcontext"
 )
 
 type Config struct {
@@ -102,10 +101,6 @@ func Start(opts ...Options) error {
 		overrideRulesJSON: c.OverrideRulesJSON,
 	}
 
-	if err := SetExporterProvider(exporter.ExporterNameStdout); err != nil {
-		return err
-	}
-
 	if err := w.start(); err != nil {
 		return err
 	}
@@ -128,14 +123,8 @@ func SetErrorHandler(h handler.ErrorHandler) {
 	handler.SetErrorHandler(h)
 }
 
-func SetExporterProvider(name waf.ExporterName) error {
-	switch name {
-	case exporter.ExporterNameStdout:
-		waf.SetExporter(exporter.NewStdoutExporter())
-		return nil
-	default:
-		return fmt.Errorf("unknown exporter name: %s", name)
-	}
+func SetExporter(eventExporter exporter.EventExporter) {
+	exporter.SetExporter(eventExporter)
 }
 
 func SetUser(ctx context.Context, userID string) error {

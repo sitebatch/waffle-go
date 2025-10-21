@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 
-	"github.com/sitebatch/waffle-go/internal/emitter/waf"
 	"github.com/sitebatch/waffle-go/internal/log"
+	"github.com/sitebatch/waffle-go/waf"
 )
 
-var (
-	ExporterNameStdout waf.ExporterName = "stdout"
-)
+var _ EventExporter = (*StdoutExporter)(nil)
 
 type StdoutExporter struct{}
 

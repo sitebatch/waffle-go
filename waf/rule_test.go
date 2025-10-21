@@ -3,10 +3,10 @@ package waf_test
 import (
 	"testing"
 
-	"github.com/sitebatch/waffle-go/internal/emitter/waf"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/inspector/types"
 	"github.com/sitebatch/waffle-go/internal/rule"
+	"github.com/sitebatch/waffle-go/waf"
 	"github.com/stretchr/testify/assert"
 )
 

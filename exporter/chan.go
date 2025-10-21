@@ -3,24 +3,22 @@ package exporter
 import (
 	"context"
 
-	"github.com/sitebatch/waffle-go/internal/emitter/waf"
+	"github.com/sitebatch/waffle-go/waf"
 )
 
-var (
-	ExporterNameChan waf.ExporterName = "chan"
-)
+var _ EventExporter = (*ChanExporter)(nil)
 
 type ChanExporter struct {
-	Ch chan waf.ReadOnlyDetectionEvents
+	wCh chan waf.ReadOnlyDetectionEvents
 }
 
 func NewChanExporter(ch chan waf.ReadOnlyDetectionEvents) *ChanExporter {
 	return &ChanExporter{
-		Ch: ch,
+		wCh: ch,
 	}
 }
 
 func (e *ChanExporter) Export(_ context.Context, event waf.ReadOnlyDetectionEvents) error {
-	e.Ch <- event
+	e.wCh <- event
 	return nil
 }

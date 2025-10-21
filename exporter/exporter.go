@@ -1,26 +1,23 @@
-package waf
+package exporter
 
 import (
 	"context"
 	"sync/atomic"
+
+	"github.com/sitebatch/waffle-go/waf"
 )
 
 var (
 	globalExporter = defaultExporterValue()
 )
 
-type (
-	ExporterName string
-	ExportConfig struct{}
+type eventExporterProvider struct {
+	ep EventExporter
+}
 
-	EventExporter interface {
-		Export(ctx context.Context, event ReadOnlyDetectionEvents) error
-	}
-
-	eventExporterProvider struct {
-		ep EventExporter
-	}
-)
+type EventExporter interface {
+	Export(ctx context.Context, event waf.ReadOnlyDetectionEvents) error
+}
 
 func GetExporter() EventExporter {
 	v := globalExporter.Load().(*eventExporterProvider)
@@ -39,14 +36,4 @@ func defaultExporterValue() *atomic.Value {
 		ep: newNopExporter(),
 	})
 	return v
-}
-
-type nopExporter struct{}
-
-func newNopExporter() *nopExporter {
-	return &nopExporter{}
-}
-
-func (e *nopExporter) Export(ctx context.Context, event ReadOnlyDetectionEvents) error {
-	return nil
 }

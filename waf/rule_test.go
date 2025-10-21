@@ -188,7 +188,6 @@ func TestRuleEvaluator_Eval(t *testing.T) {
 			})
 
 			gotResult, gotBlock := evaluator.Eval(tt.rule, tt.data)
-
 			assert.Equal(t, tt.wantBlock, gotBlock)
 			assert.Equal(t, tt.wantResult, gotResult)
 		})

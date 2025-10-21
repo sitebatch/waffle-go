@@ -105,7 +105,7 @@ func (e *RuleEvaluator) runInspector(condition rule.Condition, data inspector.In
 		})
 
 	default:
-		return nil, errors.New("unknown inspector: " + condition.Inspector)
+		return i.Inspect(data, nil)
 	}
 }
 

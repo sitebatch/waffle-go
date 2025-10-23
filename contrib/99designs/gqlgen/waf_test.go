@@ -95,8 +95,8 @@ func TestWafMiddleware(t *testing.T) {
 				"text": "<script>alert(1)</script>",
 			},
 			waffleRule:   blockRuleGraphQLRequestVariables,
-			expectStatus: http.StatusOK,
-			expectBody:   `{"errors":[{"message":"RequestBlocked",`,
+			expectStatus: http.StatusForbidden,
+			expectBody:   `{"error": "access denied. Sorry, you cannnot access this resource. Please contact the customer support."}`,
 		},
 	}
 

@@ -24,12 +24,21 @@ func TestResponseWriter_WriteHeader(t *testing.T) {
 
 	testWriter := httptest.NewRecorder()
 	writer, waffleWriter := response.NewWaffleResponseWriter(testWriter)
+
 	writer.WriteHeader(200)
+	waffleWriter.WriteHeader(200)
+
 	assert.Equal(t, 200, testWriter.Code)
-	assert.True(t, waffleWriter.HeaderWritten())
+	assert.Equal(t, 200, waffleWriter.Status())
 
 	writer.WriteHeader(400)
+	waffleWriter.WriteHeader(400)
 	assert.Equal(t, 200, testWriter.Code)
+	assert.Equal(t, 200, waffleWriter.Status())
+
+	waffleWriter.Reset()
+	waffleWriter.WriteHeader(400)
+	assert.Equal(t, 400, waffleWriter.Status())
 }
 
 func TestResponseWriter_Write(t *testing.T) {
@@ -37,11 +46,14 @@ func TestResponseWriter_Write(t *testing.T) {
 
 	testWriter := httptest.NewRecorder()
 	writer, waffleWriter := response.NewWaffleResponseWriter(testWriter)
-	writer.Write([]byte("Hello, World!"))
-	assert.Equal(t, "Hello, World!", testWriter.Body.String())
-	assert.True(t, waffleWriter.BodyWritten())
 
-	writer.Write([]byte("Goodbye, World!"))
+	_, _ = writer.Write([]byte("Hello, World!"))
+	assert.Equal(t, "", testWriter.Body.String())
+	assert.NoError(t, waffleWriter.Commit())
+	assert.Equal(t, "Hello, World!", testWriter.Body.String())
+
+	_, _ = writer.Write([]byte("Goodbye, World!"))
+	assert.NoError(t, waffleWriter.Commit())
 	assert.Equal(t, "Hello, World!Goodbye, World!", testWriter.Body.String())
 }
 

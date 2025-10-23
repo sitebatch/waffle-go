@@ -35,8 +35,6 @@ func (m *mockEventExporter) Export(_ context.Context, events waf.ReadOnlyDetecti
 }
 
 func TestStart_Integration(t *testing.T) {
-	t.Parallel()
-
 	setupDB(t)
 	r := setupRouter()
 
@@ -92,8 +90,6 @@ func TestStart_Integration(t *testing.T) {
 
 	for name, tt := range testCases {
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
 			eventExporter := &mockEventExporter{}
 			waffle.SetExporter(eventExporter)
 			waffle.SetBlockResponseTemplateHTML([]byte("request blocked"))

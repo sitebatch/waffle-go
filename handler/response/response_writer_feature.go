@@ -2,6 +2,7 @@ package response
 
 import (
 	"bufio"
+	"bytes"
 	"net"
 	"net/http"
 )
@@ -40,11 +41,11 @@ func (f *pusherFeature) Push(target string, opts *http.PushOptions) error {
 
 func InitResponseWriterFeature() {
 	featurePicker[0] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return ww, ww
 	}
 	featurePicker[closeNotifier] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.CloseNotifier
@@ -53,7 +54,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[flusher] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.Flusher
@@ -62,7 +63,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[hijacker] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.Hijacker
@@ -71,7 +72,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[pusher] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.Pusher
@@ -80,7 +81,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[closeNotifier|flusher] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.CloseNotifier
@@ -90,7 +91,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[closeNotifier|hijacker] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.CloseNotifier
@@ -100,7 +101,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[closeNotifier|pusher] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.CloseNotifier
@@ -110,7 +111,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[flusher|hijacker] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.Flusher
@@ -120,7 +121,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[flusher|pusher] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.Flusher
@@ -130,7 +131,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[hijacker|pusher] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.Hijacker
@@ -140,7 +141,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[closeNotifier|flusher|hijacker] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.CloseNotifier
@@ -151,7 +152,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[closeNotifier|flusher|pusher] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.CloseNotifier
@@ -162,7 +163,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[closeNotifier|hijacker|pusher] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.CloseNotifier
@@ -173,7 +174,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[flusher|hijacker|pusher] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.Flusher
@@ -184,7 +185,7 @@ func InitResponseWriterFeature() {
 		}, ww
 	}
 	featurePicker[closeNotifier|flusher|hijacker|pusher] = func(w http.ResponseWriter) (http.ResponseWriter, *WaffleResponseWriter) {
-		ww := &WaffleResponseWriter{ResponseWriter: w}
+		ww := &WaffleResponseWriter{ResponseWriter: w, buf: new(bytes.Buffer)}
 		return struct {
 			*WaffleResponseWriter
 			http.CloseNotifier

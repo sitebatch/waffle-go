@@ -1,6 +1,7 @@
 package response
 
 import (
+	"bytes"
 	"net/http"
 )
 
@@ -9,10 +10,8 @@ type WaffleResponseWriter struct {
 
 	// status is the HTTP status code written to the ResponseWriter.
 	status int
-	// headerWritten is true if the response header has been written.
-	headerWritten bool
-	// bodyWritten is true if the response body has been written.
-	bodyWritten bool
+
+	buf *bytes.Buffer
 }
 
 var (
@@ -37,40 +36,51 @@ func NewWaffleResponseWriter(w http.ResponseWriter) (http.ResponseWriter, *Waffl
 	}
 
 	return featurePicker[feature](w)
-
 }
 
 func (w *WaffleResponseWriter) WriteHeader(status int) {
-	if w.headerWritten {
+	if w.status != 0 {
 		return
 	}
 
 	w.status = status
-	w.ResponseWriter.WriteHeader(status)
-	w.headerWritten = true
 }
 
 func (w *WaffleResponseWriter) Write(b []byte) (int, error) {
-	if !w.headerWritten {
-		w.WriteHeader(http.StatusOK)
-	}
-
-	w.bodyWritten = true
-	return w.ResponseWriter.Write(b)
+	return w.buf.Write(b)
 }
 
 func (w *WaffleResponseWriter) Status() int {
 	return w.status
 }
 
-func (w *WaffleResponseWriter) HeaderWritten() bool {
-	return w.headerWritten
-}
-
-func (w *WaffleResponseWriter) BodyWritten() bool {
-	return w.bodyWritten
-}
-
 func (w *WaffleResponseWriter) Unwrap() http.ResponseWriter {
 	return w.ResponseWriter
+}
+
+func (w *WaffleResponseWriter) Reset() {
+	w.buf.Reset()
+	w.status = 0
+}
+
+func (w *WaffleResponseWriter) Flush() {
+	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+func (w *WaffleResponseWriter) Commit() error {
+	if w.status == 0 {
+		w.ResponseWriter.WriteHeader(http.StatusOK)
+	} else {
+		w.ResponseWriter.WriteHeader(w.status)
+	}
+
+	if _, err := w.ResponseWriter.Write(w.buf.Bytes()); err != nil {
+		return err
+	}
+
+	w.buf.Reset()
+
+	return nil
 }

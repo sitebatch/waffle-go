@@ -3,7 +3,7 @@ package http
 import (
 	"net/http"
 
-	"github.com/sitebatch/waffle-go/action"
+	"github.com/sitebatch/waffle-go/handler/response"
 	"github.com/sitebatch/waffle-go/internal/log"
 )
 
@@ -12,7 +12,7 @@ type Options struct {
 }
 
 func handle(w http.ResponseWriter, r *http.Request, options Options) (http.ResponseWriter, *http.Request, bool, func()) {
-	ww, waffleResponseWriter := action.NewWaffleResponseWriter(w)
+	ww, waffleResponseWriter := response.NewWaffleResponseWriter(w)
 	op, ctx := StartHTTPRequestHandlerOperation(r.Context(), BuildHttpRequestHandlerOperationArg(r))
 	rr := r.WithContext(ctx)
 
@@ -24,7 +24,7 @@ func handle(w http.ResponseWriter, r *http.Request, options Options) (http.Respo
 		if result.BlockErr != nil {
 			blocked = true
 			if !waffleResponseWriter.BodyWritten() {
-				action.BlockResponseHandler().ServeHTTP(ww, rr)
+				response.BlockResponseHandler().ServeHTTP(ww, rr)
 				if options.OnBlockFunc != nil {
 					options.OnBlockFunc()
 				}
@@ -37,7 +37,7 @@ func handle(w http.ResponseWriter, r *http.Request, options Options) (http.Respo
 		if waffleResponseWriter.BodyWritten() {
 			log.Warn("response body is already written, will not respond with block page")
 		} else {
-			action.BlockResponseHandler().ServeHTTP(ww, rr)
+			response.BlockResponseHandler().ServeHTTP(ww, rr)
 		}
 	}
 

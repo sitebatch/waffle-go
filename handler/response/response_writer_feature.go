@@ -1,4 +1,4 @@
-package action
+package response
 
 import (
 	"bufio"

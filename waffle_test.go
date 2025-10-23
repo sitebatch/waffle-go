@@ -96,7 +96,7 @@ func TestStart_Integration(t *testing.T) {
 
 			eventExporter := &mockEventExporter{}
 			waffle.SetExporter(eventExporter)
-			action.RegisterBlockResponseTemplateHTML([]byte("request blocked"))
+			waffle.SetBlockResponseTemplateHTML([]byte("request blocked"))
 			waffle.Start()
 
 			w := httptest.NewRecorder()

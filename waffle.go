@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
-	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/exporter"
 	"github.com/sitebatch/waffle-go/handler"
+	"github.com/sitebatch/waffle-go/handler/response"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
 	"github.com/sitebatch/waffle-go/internal/listener"
 	"github.com/sitebatch/waffle-go/internal/listener/account_takeover"
@@ -79,19 +79,8 @@ func WithOverrideRules(ruleJSON []byte) Options {
 	}
 }
 
-func WithCustomBlockedResponse(responseBodyHTML []byte, responseBodyJSON []byte) Options {
-	return func(c *Config) {
-		if len(responseBodyHTML) != 0 {
-			action.RegisterBlockResponseTemplateHTML(responseBodyHTML)
-		}
-		if len(responseBodyJSON) != 0 {
-			action.RegisterBlockResponseTemplateJSON(responseBodyJSON)
-		}
-	}
-}
-
 func Start(opts ...Options) error {
-	action.InitResponseWriterFeature()
+	response.InitResponseWriterFeature()
 	c := defaultConfig()
 	for _, opt := range opts {
 		opt(c)
@@ -106,6 +95,10 @@ func Start(opts ...Options) error {
 	}
 
 	return nil
+}
+
+func SetBlockResponseTemplateHTML(html []byte) {
+	response.SetBlockResponseTemplateHTML(html)
 }
 
 // SetLogger sets a global logger for Waffle.

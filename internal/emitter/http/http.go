@@ -9,8 +9,8 @@ import (
 
 	"github.com/sitebatch/waffle-go/internal/emitter/http/parser"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
-	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/operation"
+	"github.com/sitebatch/waffle-go/waf/wafcontext"
 )
 
 type HTTPRequestHandlerOperation struct {

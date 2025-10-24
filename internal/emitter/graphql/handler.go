@@ -6,7 +6,6 @@ import (
 	"github.com/jeremywohl/flatten"
 	"github.com/sitebatch/waffle-go/internal/emitter/http"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
-	"github.com/sitebatch/waffle-go/internal/log"
 	"github.com/sitebatch/waffle-go/internal/operation"
 )
 
@@ -59,7 +58,6 @@ func BuildGraphqlRequestHandlerOperationArg(
 
 	flat, err := flatten.Flatten(variables, "", flatten.DotStyle)
 	if err != nil {
-		log.Error("failed to parse graphql variables", "error", err)
 		graphqlVariables = map[string][]string{}
 	} else {
 		graphqlVariables = make(map[string][]string)

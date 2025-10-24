@@ -1,9 +1,5 @@
 package types
 
-import (
-	"github.com/sitebatch/waffle-go/internal/log"
-)
-
 type GetInspectTargetValueOptions struct {
 	ParamNames []string
 }
@@ -54,7 +50,7 @@ func NewKeyValues(values map[string][]string) InspectTargetValue {
 }
 
 func (v *KeyValues) GetValue() string {
-	log.Error("GetValue() is not supported for InspectTargetValueKeyValues, return empty string")
+	// not supported for InspectTargetValueKeyValues, return empty string
 	return ""
 }
 

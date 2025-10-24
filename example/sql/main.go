@@ -23,7 +23,7 @@ func init() {
 }
 
 func main() {
-	waffle.Start(waffle.WithDebug())
+	waffle.Start()
 
 	r := gin.Default()
 

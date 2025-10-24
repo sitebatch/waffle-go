@@ -1,6 +1,7 @@
 package http_test
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -10,59 +11,83 @@ import (
 	"github.com/sitebatch/waffle-go/action"
 	waffleHttp "github.com/sitebatch/waffle-go/contrib/net/http"
 	waffleOs "github.com/sitebatch/waffle-go/contrib/os"
+	"github.com/sitebatch/waffle-go/waf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+type mockEventExporter struct {
+	events []waf.DetectionEvent
+}
+
+func (m *mockEventExporter) Export(_ context.Context, events waf.ReadOnlyDetectionEvents) error {
+	m.events = append(m.events, events.Events()...)
+
+	return nil
+}
+
 func TestWafMiddleware(t *testing.T) {
 	testCases := map[string]struct {
-		controller http.Handler
-		req        *http.Request
-		expectErr  bool
+		controller           http.Handler
+		req                  *http.Request
+		wantStatusCode       int
+		wantResponseBody     string
+		wantDetectionRuleIDs []string
 	}{
-		"not block": {
+		"not blocked": {
 			controller: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Write([]byte("Hello"))
+				_, err := w.Write([]byte("Hello"))
+				require.NoError(t, err)
 			}),
-			req:       mustNewRequest(t, http.MethodGet, "/", nil),
-			expectErr: false,
+			req:                  mustNewRequest(t, http.MethodGet, "/", nil),
+			wantStatusCode:       200,
+			wantResponseBody:     "Hello",
+			wantDetectionRuleIDs: []string{},
 		},
-		"block": {
+		"blocked": {
 			controller: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if _, err := waffleOs.ProtectReadFile(r.Context(), "/var/run/secrets/path/to/file"); err != nil {
-					if _, ok := err.(*action.BlockError); ok {
-						http.Error(w, err.Error(), http.StatusForbidden)
+					if action.IsBlockError(err) {
+						// WAF has already handled the block response.
 						return
 					}
+
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
-				w.Write([]byte("file read"))
+				_, err := w.Write([]byte("file read"))
+				require.NoError(t, err)
 			}),
-			req:       mustNewRequest(t, http.MethodGet, "/?file=/var/run/secrets/path/to/file", nil),
-			expectErr: true,
+			req:                  mustNewRequest(t, http.MethodGet, "/?file=/var/run/secrets/path/to/file", nil),
+			wantStatusCode:       403,
+			wantResponseBody:     "request blocked",
+			wantDetectionRuleIDs: []string{"sensitive-file-opened"},
 		},
 	}
 
 	for name, tt := range testCases {
-		tt := tt
-
 		t.Run(name, func(t *testing.T) {
 			mux := http.NewServeMux()
 			mux.Handle("/", tt.controller)
 			handler := waffleHttp.WafMiddleware(mux)
 
-			waffle.Start()
+			eventExporter := &mockEventExporter{}
+			waffle.SetExporter(eventExporter)
+			waffle.SetBlockResponseTemplateHTML([]byte("request blocked"))
+			require.NoError(t, waffle.Start())
 
 			rr := httptest.NewRecorder()
 			handler.ServeHTTP(rr, tt.req)
 
-			if tt.expectErr {
-				assert.Equal(t, http.StatusForbidden, rr.Code)
-				return
+			assert.Equal(t, tt.wantStatusCode, rr.Code)
+			assert.Equal(t, tt.wantResponseBody, rr.Body.String())
+
+			ruleIDs := make([]string, 0, len(eventExporter.events))
+			for _, evt := range eventExporter.events {
+				ruleIDs = append(ruleIDs, evt.Rule.ID)
 			}
 
-			assert.Equal(t, http.StatusOK, rr.Code)
+			assert.Equal(t, tt.wantDetectionRuleIDs, ruleIDs)
 		})
 	}
 }

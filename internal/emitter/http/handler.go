@@ -3,8 +3,8 @@ package http
 import (
 	"net/http"
 
-	"github.com/sitebatch/waffle-go/action"
-	"github.com/sitebatch/waffle-go/internal/log"
+	"github.com/sitebatch/waffle-go/handler"
+	"github.com/sitebatch/waffle-go/handler/response"
 )
 
 type Options struct {
@@ -12,7 +12,7 @@ type Options struct {
 }
 
 func handle(w http.ResponseWriter, r *http.Request, options Options) (http.ResponseWriter, *http.Request, bool, func()) {
-	ww, waffleResponseWriter := action.NewWaffleResponseWriter(w)
+	ww, waffleResponseWriter := response.NewWaffleResponseWriter(w)
 	op, ctx := StartHTTPRequestHandlerOperation(r.Context(), BuildHttpRequestHandlerOperationArg(r))
 	rr := r.WithContext(ctx)
 
@@ -22,23 +22,28 @@ func handle(w http.ResponseWriter, r *http.Request, options Options) (http.Respo
 		op.Finish(result)
 
 		if result.BlockErr != nil {
-			blocked = true
-			if !waffleResponseWriter.BodyWritten() {
-				action.BlockResponseHandler().ServeHTTP(ww, rr)
-				if options.OnBlockFunc != nil {
-					options.OnBlockFunc()
-				}
+			if options.OnBlockFunc != nil {
+				options.OnBlockFunc()
 			}
+
+			contentType := waffleResponseWriter.Header().Get("Content-Type")
+			waffleResponseWriter.Reset()
+			blocked = true
+
+			response.BlockResponseHandler(contentType).ServeHTTP(waffleResponseWriter, rr)
+		}
+
+		if err := waffleResponseWriter.Commit(); err != nil {
+			handler.GetErrorHandler().HandleError(err)
 		}
 	}
 
 	if op.IsBlock() {
 		blocked = true
-		if waffleResponseWriter.BodyWritten() {
-			log.Warn("response body is already written, will not respond with block page")
-		} else {
-			action.BlockResponseHandler().ServeHTTP(ww, rr)
-		}
+
+		contentType := waffleResponseWriter.Header().Get("Content-Type")
+		waffleResponseWriter.Reset()
+		response.BlockResponseHandler(contentType).ServeHTTP(waffleResponseWriter, rr)
 	}
 
 	return ww, rr, blocked, afterHandler

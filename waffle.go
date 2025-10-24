@@ -3,10 +3,11 @@ package waffle
 import (
 	"context"
 
-	"github.com/sitebatch/waffle-go/action"
+	"github.com/go-logr/logr"
+	"github.com/sitebatch/waffle-go/exporter"
+	"github.com/sitebatch/waffle-go/handler"
+	"github.com/sitebatch/waffle-go/handler/response"
 	"github.com/sitebatch/waffle-go/internal/emitter/waf"
-	"github.com/sitebatch/waffle-go/internal/emitter/waf/exporter"
-	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/listener"
 	"github.com/sitebatch/waffle-go/internal/listener/account_takeover"
 	"github.com/sitebatch/waffle-go/internal/listener/graphql"
@@ -16,15 +17,15 @@ import (
 	"github.com/sitebatch/waffle-go/internal/log"
 	"github.com/sitebatch/waffle-go/internal/operation"
 	"github.com/sitebatch/waffle-go/internal/rule"
+	"github.com/sitebatch/waffle-go/waf/wafcontext"
 )
 
 type Config struct {
-	Debug             bool
 	OverrideRulesJSON []byte
 }
 
 func defaultConfig() *Config {
-	return &Config{Debug: false}
+	return &Config{}
 }
 
 type Waffle struct {
@@ -46,7 +47,6 @@ func (w *Waffle) start() error {
 		if err := rule.LoadRules(w.overrideRulesJSON); err != nil {
 			return err
 		}
-		log.Info("waffle: loaded custom rules")
 	} else {
 		if err := rule.LoadDefaultRules(); err != nil {
 			return err
@@ -73,33 +73,14 @@ func (w *Waffle) start() error {
 
 type Options func(*Config)
 
-func WithDebug() Options {
-	return func(c *Config) {
-		c.Debug = true
-		log.SetLevel(log.LevelDebug)
-		log.Debug("waffle: debug mode enabled")
-	}
-}
-
 func WithOverrideRules(ruleJSON []byte) Options {
 	return func(c *Config) {
 		c.OverrideRulesJSON = ruleJSON
 	}
 }
 
-func WithCustomBlockedResponse(responseBodyHTML []byte, responseBodyJSON []byte) Options {
-	return func(c *Config) {
-		if len(responseBodyHTML) != 0 {
-			action.RegisterBlockResponseTemplateHTML(responseBodyHTML)
-		}
-		if len(responseBodyJSON) != 0 {
-			action.RegisterBlockResponseTemplateJSON(responseBodyJSON)
-		}
-	}
-}
-
-func Start(opts ...Options) {
-	action.InitResponseWriterFeature()
+func Start(opts ...Options) error {
+	response.InitResponseWriterFeature()
 	c := defaultConfig()
 	for _, opt := range opts {
 		opt(c)
@@ -108,23 +89,41 @@ func Start(opts ...Options) {
 	w := &Waffle{
 		overrideRulesJSON: c.OverrideRulesJSON,
 	}
-	SetExporterProvider(exporter.ExporterNameStdout)
-	err := w.start()
-	if err != nil {
-		log.Error("Failed to start waffle: %v", err)
-		return
+
+	if err := w.start(); err != nil {
+		return err
 	}
 
-	log.Info("waffle: started")
+	return nil
 }
 
-func SetExporterProvider(name waf.ExporterName) {
-	switch name {
-	case exporter.ExporterNameStdout:
-		waf.SetExporter(exporter.NewStdoutExporter())
-	default:
-		log.Error("unknown exporter name: %s", name)
-	}
+// SetBlockResponseTemplateHTML sets the HTML template for block responses.
+func SetBlockResponseTemplateHTML(html []byte) {
+	response.SetBlockResponseTemplateHTML(html)
+}
+
+// SetBlockResponseTemplateJSON sets the JSON template for block responses.
+func SetBlockResponseTemplateJSON(json []byte) {
+	response.SetBlockResponseTemplateJSON(json)
+}
+
+// SetLogger sets a global logger for Waffle.
+func SetLogger(logger logr.Logger) {
+	log.SetLogger(logger)
+}
+
+// SetErrorHandler sets a global error handler for Waffle.
+//
+// Waffle monitors applications for potential attacks by inspecting input values and generating test data.
+// Typically, the operations performed by Waffle are not essential to an application's core business logic.
+// Therefore, errors occurring within Waffle are designed to not affect the application's normal operation.
+// By default, errors are logged, but you can define custom logic to handle and record these errors for monitoring purposes.
+func SetErrorHandler(h handler.ErrorHandler) {
+	handler.SetErrorHandler(h)
+}
+
+func SetExporter(eventExporter exporter.EventExporter) {
+	exporter.SetExporter(eventExporter)
 }
 
 func SetUser(ctx context.Context, userID string) error {

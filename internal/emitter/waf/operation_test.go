@@ -8,11 +8,12 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/emitter/http"
-	"github.com/sitebatch/waffle-go/internal/emitter/waf"
-	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
+	wafEmitter "github.com/sitebatch/waffle-go/internal/emitter/waf"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/operation"
 	"github.com/sitebatch/waffle-go/internal/rule"
+	"github.com/sitebatch/waffle-go/waf"
+	"github.com/sitebatch/waffle-go/waf/wafcontext"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +34,7 @@ func TestInitializeWafOperation(t *testing.T) {
 	require.NoError(t, rule.LoadDefaultRules())
 
 	testCases := map[string]struct {
-		opts                 []waf.WafOperationContextOption
+		opts                 []wafEmitter.WafOperationContextOption
 		wantOperationContext *wafcontext.WafOperationContext
 	}{
 		"can initialize WafOperation without options": {
@@ -41,8 +42,8 @@ func TestInitializeWafOperation(t *testing.T) {
 			wantOperationContext: wafcontext.NewWafOperationContext(),
 		},
 		"can initialize WafOperation with HTTP request context": {
-			opts: []waf.WafOperationContextOption{
-				waf.WithHttpRequstContext(wafcontext.HttpRequest{
+			opts: []wafEmitter.WafOperationContextOption{
+				wafEmitter.WithHttpRequstContext(wafcontext.HttpRequest{
 					URL:      "http://example.com",
 					Headers:  map[string][]string{"User-Agent": {"Go-http-client/1.1"}},
 					Body:     map[string][]string{"key": {"value"}},
@@ -72,9 +73,9 @@ func TestInitializeWafOperation(t *testing.T) {
 			}
 			ctx := operation.SetOperation(context.Background(), op)
 
-			wafOp, ctx := waf.InitializeWafOperation(ctx, tt.opts...)
+			wafOp, ctx := wafEmitter.InitializeWafOperation(ctx, tt.opts...)
 
-			got, found := operation.FindOperation[waf.WafOperation](ctx)
+			got, found := operation.FindOperation[wafEmitter.WafOperation](ctx)
 			assert.True(t, found)
 			assert.Equal(t, wafOp, got)
 
@@ -87,11 +88,11 @@ func TestSetMeta(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		op   *waf.WafOperation
+		op   *wafEmitter.WafOperation
 		want map[string]string
 	}{
 		"can set Metadata in Operation": {
-			op: waf.NewWafOperation(
+			op: wafEmitter.NewWafOperation(
 				operation.NewOperation(nil),
 				nil,
 				wafcontext.NewWafOperationContext(),
@@ -196,7 +197,7 @@ func TestWafOperation_Run(t *testing.T) {
 				Operation: operation.NewOperation(nil),
 			}
 
-			wafop := waf.NewWafOperation(op, &mockWaf{
+			wafop := wafEmitter.NewWafOperation(op, &mockWaf{
 				mockInspectFunc: tt.arrange.mockInspectFunc,
 			}, wafOpCtx)
 
@@ -268,7 +269,7 @@ func TestWafOperation_FinishInspect(t *testing.T) {
 
 	testCases := map[string]struct {
 		arrange    arrange
-		wantResult *waf.WafOperationResult
+		wantResult *wafEmitter.WafOperationResult
 	}{
 		"when inspector return block error, set block on waf operation": {
 			arrange: arrange{
@@ -289,7 +290,7 @@ func TestWafOperation_FinishInspect(t *testing.T) {
 						}
 				},
 			},
-			wantResult: &waf.WafOperationResult{
+			wantResult: &wafEmitter.WafOperationResult{
 				BlockErr: &action.BlockError{
 					RuleID:    "1",
 					Inspector: "regex",
@@ -323,7 +324,7 @@ func TestWafOperation_FinishInspect(t *testing.T) {
 					}, nil
 				},
 			},
-			wantResult: &waf.WafOperationResult{
+			wantResult: &wafEmitter.WafOperationResult{
 				BlockErr: nil,
 				DetectionEvents: []waf.DetectionEvent{
 					waf.NewDetectionEvent(wafOpCtx, waf.EvalResult{
@@ -344,7 +345,7 @@ func TestWafOperation_FinishInspect(t *testing.T) {
 					return nil, nil
 				},
 			},
-			wantResult: &waf.WafOperationResult{
+			wantResult: &wafEmitter.WafOperationResult{
 				BlockErr:        nil,
 				DetectionEvents: nil,
 			},
@@ -355,7 +356,7 @@ func TestWafOperation_FinishInspect(t *testing.T) {
 					return nil, assert.AnError
 				},
 			},
-			wantResult: &waf.WafOperationResult{
+			wantResult: &wafEmitter.WafOperationResult{
 				BlockErr:        nil,
 				DetectionEvents: nil,
 			},
@@ -370,7 +371,7 @@ func TestWafOperation_FinishInspect(t *testing.T) {
 				Operation: operation.NewOperation(nil),
 			}
 
-			wafop := waf.NewWafOperation(op, &mockWaf{
+			wafop := wafEmitter.NewWafOperation(op, &mockWaf{
 				mockInspectFunc: tt.arrange.mockInspectFunc,
 			}, wafOpCtx)
 
@@ -380,7 +381,7 @@ func TestWafOperation_FinishInspect(t *testing.T) {
 				assert.NotNil(t, wafop.DetectionEvents())
 			}
 
-			result := &waf.WafOperationResult{}
+			result := &wafEmitter.WafOperationResult{}
 			wafop.FinishInspect(op, result)
 
 			opt := cmpopts.IgnoreFields(waf.DetectionEvent{}, "DetectedAt")

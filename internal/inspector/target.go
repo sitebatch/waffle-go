@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/inspector/types"
+	"github.com/sitebatch/waffle-go/waf/wafcontext"
 )
 
 type InspectTarget string

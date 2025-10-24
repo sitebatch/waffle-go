@@ -6,21 +6,23 @@ import (
 	"sync"
 
 	"github.com/sitebatch/waffle-go/action"
-	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
+	"github.com/sitebatch/waffle-go/exporter"
+	"github.com/sitebatch/waffle-go/handler"
 	"github.com/sitebatch/waffle-go/internal/inspector"
-	"github.com/sitebatch/waffle-go/internal/log"
 	"github.com/sitebatch/waffle-go/internal/operation"
 	"github.com/sitebatch/waffle-go/internal/rule"
+	"github.com/sitebatch/waffle-go/waf"
+	"github.com/sitebatch/waffle-go/waf/wafcontext"
 )
 
 // WafOperation is an operation that represents a WAF inspection process.
 type WafOperation struct {
 	operation.Operation
 
-	Waf                 WAF
+	Waf                 waf.WAF
 	wafOperationContext *wafcontext.WafOperationContext
 
-	eventRecorder *EventRecorder
+	eventRecorder *waf.EventRecorder
 	blockErr      *action.BlockError
 
 	mu sync.Mutex
@@ -29,7 +31,7 @@ type WafOperation struct {
 type WafOperationArg struct{}
 type WafOperationResult struct {
 	BlockErr        *action.BlockError
-	DetectionEvents []DetectionEvent
+	DetectionEvents []waf.DetectionEvent
 }
 
 func (WafOperationArg) IsArgOf(*WafOperation)       {}
@@ -51,11 +53,11 @@ func WithHttpRequstContext(req wafcontext.HttpRequest) WafOperationContextOption
 	}
 }
 
-func NewWafOperation(parent operation.Operation, waf WAF, wafOpCtx *wafcontext.WafOperationContext) *WafOperation {
+func NewWafOperation(parent operation.Operation, w waf.WAF, wafOpCtx *wafcontext.WafOperationContext) *WafOperation {
 	return &WafOperation{
 		Operation:           operation.NewOperation(parent),
-		Waf:                 waf,
-		eventRecorder:       NewEventRecorder(),
+		Waf:                 w,
+		eventRecorder:       waf.NewEventRecorder(),
 		wafOperationContext: wafOpCtx,
 	}
 }
@@ -65,7 +67,7 @@ func NewWafOperation(parent operation.Operation, waf WAF, wafOpCtx *wafcontext.W
 func InitializeWafOperation(ctx context.Context, opts ...WafOperationContextOption) (*WafOperation, context.Context) {
 	parent, _ := operation.FindOperationFromContext(ctx)
 	wafCtx := wafcontext.NewWafOperationContext()
-	op := NewWafOperation(parent, NewWAF(rule.LoadedRule), wafCtx)
+	op := NewWafOperation(parent, waf.NewWAF(rule.LoadedRule), wafCtx)
 
 	for _, opt := range opts {
 		opt(op)
@@ -92,7 +94,7 @@ func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.Ins
 			return
 		}
 
-		log.Error("failed to inspect", "error", err)
+		handler.GetErrorHandler().HandleError(err)
 	}
 }
 
@@ -113,8 +115,8 @@ func (wafOp *WafOperation) FinishInspect(op operation.Operation, res *WafOperati
 	if events != nil {
 		res.DetectionEvents = events.Events()
 
-		if err := GetExporter().Export(context.Background(), events); err != nil {
-			log.Error("failed to export WAF event", "error", err)
+		if err := exporter.GetExporter().Export(context.Background(), events); err != nil {
+			handler.GetErrorHandler().HandleError(err)
 		}
 
 		wafOp.eventRecorder.Clear()
@@ -134,7 +136,7 @@ func (wafOp *WafOperation) OperationContext() *wafcontext.WafOperationContext {
 	return wafOp.wafOperationContext
 }
 
-func (wafOp *WafOperation) snapshot(op operation.Operation, events []DetectionEvent) {
+func (wafOp *WafOperation) snapshot(op operation.Operation, events []waf.DetectionEvent) {
 	s := &snapshot{
 		events:    events,
 		operation: op,
@@ -143,6 +145,23 @@ func (wafOp *WafOperation) snapshot(op operation.Operation, events []DetectionEv
 	wafOp.eventRecorder.Store(s)
 }
 
-func (wafOp *WafOperation) DetectionEvents() ReadOnlyDetectionEvents {
+func (wafOp *WafOperation) DetectionEvents() waf.ReadOnlyDetectionEvents {
 	return wafOp.eventRecorder.Load()
+}
+
+// snapshot is an event of a waf detection state at a particular operation.
+// It is used as a read-only representation of that state.
+type snapshot struct {
+	operation operation.Operation
+	events    []waf.DetectionEvent
+}
+
+var _ waf.ReadOnlyDetectionEvents = (*snapshot)(nil)
+
+func (s *snapshot) Events() []waf.DetectionEvent {
+	return s.events
+}
+
+func (s *snapshot) Operation() operation.Operation {
+	return s.operation
 }

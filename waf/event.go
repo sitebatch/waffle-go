@@ -3,10 +3,10 @@ package waf
 import (
 	"time"
 
-	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/operation"
 	"github.com/sitebatch/waffle-go/internal/rule"
+	"github.com/sitebatch/waffle-go/waf/wafcontext"
 )
 
 type ReadOnlyDetectionEvents interface {

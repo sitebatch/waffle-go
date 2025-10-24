@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/sitebatch/waffle-go/handler"
 	"github.com/sitebatch/waffle-go/internal/inspector/types"
-	"github.com/sitebatch/waffle-go/internal/log"
 	regexp "github.com/wasilibs/go-re2"
 )
 
@@ -51,7 +51,7 @@ func (m *MatchListInspector) Inspect(inspectData InspectData, inspectorArgs Insp
 			for _, listValue := range args.List {
 				re, err := regexp.Compile(listValue)
 				if err != nil {
-					log.Error("regex compile error, skip inspect: %v", err)
+					handler.GetErrorHandler().HandleError(err)
 					continue
 				}
 

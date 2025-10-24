@@ -1,8 +1,8 @@
 package action
 
-import (
-	"fmt"
-)
+import "errors"
+
+var _ error = (*BlockError)(nil)
 
 type BlockError struct {
 	RuleID    string
@@ -10,5 +10,10 @@ type BlockError struct {
 }
 
 func (e *BlockError) Error() string {
-	return fmt.Sprintf("blocked by rule %s with inspector %s", e.RuleID, e.Inspector)
+	return "request blocked by WAF"
+}
+
+func IsBlockError(err error) bool {
+	var blockErr *BlockError
+	return errors.As(err, &blockErr)
 }

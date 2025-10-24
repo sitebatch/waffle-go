@@ -7,10 +7,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/sitebatch/waffle-go/action"
-	"github.com/sitebatch/waffle-go/internal/emitter/waf"
-	"github.com/sitebatch/waffle-go/internal/emitter/waf/wafcontext"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/rule"
+	"github.com/sitebatch/waffle-go/waf"
+	"github.com/sitebatch/waffle-go/waf/wafcontext"
 	"github.com/stretchr/testify/assert"
 )
 

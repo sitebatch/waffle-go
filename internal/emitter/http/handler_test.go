@@ -40,30 +40,40 @@ func TestWrapHandler(t *testing.T) {
 			req:                mustNewHttpRequest(t, http.MethodGet, "/?q=<script>alert(1)</script>", nil),
 			waffleRule:         blockRuleHttpRequest,
 			expectedCode:       http.StatusForbidden,
-			expectResponseBody: "<title>Access Denied</title>",
+			expectResponseBody: "request blocked",
 		},
 		"blocked request (POST)": {
 			req:                mustNewHttpRequest(t, http.MethodPost, "/?q=value", bytes.NewBuffer([]byte("key=<script>alert(1)</script>")), withHeader("Content-Type", "application/x-www-form-urlencoded")),
 			waffleRule:         blockRuleHttpRequest,
 			expectedCode:       http.StatusForbidden,
-			expectResponseBody: "<title>Access Denied</title>",
+			expectResponseBody: "request blocked",
 		},
-		"If the operation is blocked by subsequent processing of the middleware": {
+		"when blocked after middleware": {
 			req: mustNewHttpRequest(t, http.MethodGet, "/", nil),
 			fn: func(w http.ResponseWriter, r *http.Request) {
 				blockOperation(t, r.Context())
 			},
 			expectedCode:       http.StatusForbidden,
-			expectResponseBody: "<title>Access Denied</title>",
+			expectResponseBody: "request blocked",
 		},
-		"If there is already a write to the response, the blocked response will not be returned": {
+		"when blocked after middleware and overwrites any existing response body": {
 			req: mustNewHttpRequest(t, http.MethodGet, "/", nil),
 			fn: func(w http.ResponseWriter, r *http.Request) {
 				blockOperation(t, r.Context())
 				_, _ = w.Write([]byte("some errors"))
 			},
-			expectedCode:       http.StatusOK,
-			expectResponseBody: "some errors",
+			expectedCode:       http.StatusForbidden,
+			expectResponseBody: "request blocked",
+		},
+		"when blocked after middleware and overwrites any existing response status header and body": {
+			req: mustNewHttpRequest(t, http.MethodGet, "/", nil),
+			fn: func(w http.ResponseWriter, r *http.Request) {
+				blockOperation(t, r.Context())
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte("some errors"))
+			},
+			expectedCode:       http.StatusForbidden,
+			expectResponseBody: "request blocked",
 		},
 	}
 
@@ -76,10 +86,12 @@ func TestWrapHandler(t *testing.T) {
 			mux := http.NewServeMux()
 			mux.Handle("/", http.HandlerFunc(tt.fn))
 
+			waffle.SetBlockResponseTemplateHTML([]byte("request blocked"))
+
 			if tt.waffleRule != nil {
-				waffle.Start(waffle.WithOverrideRules(tt.waffleRule))
+				require.NoError(t, waffle.Start(waffle.WithOverrideRules(tt.waffleRule)))
 			} else {
-				waffle.Start()
+				require.NoError(t, waffle.Start())
 			}
 
 			handler := httpHandler.WrapHandler(mux, httpHandler.Options{})
@@ -88,7 +100,7 @@ func TestWrapHandler(t *testing.T) {
 			handler.ServeHTTP(rr, &tt.req)
 
 			assert.Equal(t, tt.expectedCode, rr.Code)
-			assert.Contains(t, rr.Body.String(), tt.expectResponseBody)
+			assert.Equal(t, tt.expectResponseBody, rr.Body.String())
 		})
 	}
 }

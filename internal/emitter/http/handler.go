@@ -22,14 +22,15 @@ func handle(w http.ResponseWriter, r *http.Request, options Options) (http.Respo
 		op.Finish(result)
 
 		if result.BlockErr != nil {
+			if options.OnBlockFunc != nil {
+				options.OnBlockFunc()
+			}
+
 			contentType := waffleResponseWriter.Header().Get("Content-Type")
 			waffleResponseWriter.Reset()
 			blocked = true
 
 			response.BlockResponseHandler(contentType).ServeHTTP(waffleResponseWriter, rr)
-			if options.OnBlockFunc != nil {
-				options.OnBlockFunc()
-			}
 		}
 
 		if err := waffleResponseWriter.Commit(); err != nil {

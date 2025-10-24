@@ -65,7 +65,7 @@ func TestWafMiddleware(t *testing.T) {
 				return r
 			}(),
 			wantStatusCode:       500,
-			wantResponseBody:     `failed to read file`,
+			wantResponseBody:     `file read error`,
 			wantDetectionRuleIDs: []string{},
 		},
 		"Block read sensitive file": {

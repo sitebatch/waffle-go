@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sitebatch/waffle-go"
+	"github.com/sitebatch/waffle-go/action"
 	ginWaf "github.com/sitebatch/waffle-go/contrib/gin-gonic/gin"
 	waffleOs "github.com/sitebatch/waffle-go/contrib/os"
 	"github.com/sitebatch/waffle-go/waf"
@@ -123,6 +124,11 @@ func readFile(c *gin.Context) {
 	}
 
 	if _, err := waffleOs.ProtectReadFile(c.Request.Context(), req.File); err != nil {
+		if action.IsBlockError(err) {
+			// WAF has already handled the block response.
+			return
+		}
+
 		c.Data(http.StatusInternalServerError, "text/html", []byte("file read error"))
 		return
 	}

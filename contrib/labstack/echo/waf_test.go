@@ -56,7 +56,7 @@ func TestWafMiddleware(t *testing.T) {
 
 			if tt.expectErr {
 				assert.Error(t, actual)
-				assert.Contains(t, actual.Error(), "blocked by rule sensitive-file-opened")
+				assert.Contains(t, actual.Error(), "request blocked by WAF")
 				return
 			}
 

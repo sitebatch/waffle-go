@@ -15,7 +15,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sitebatch/waffle-go"
-	"github.com/sitebatch/waffle-go/action"
 	waffleSQL "github.com/sitebatch/waffle-go/contrib/database/sql"
 	ginWaf "github.com/sitebatch/waffle-go/contrib/gin-gonic/gin"
 	"github.com/sitebatch/waffle-go/waf"
@@ -55,7 +54,7 @@ func TestStart_Integration(t *testing.T) {
 				return r
 			}(),
 			wantStatusCode:       200,
-			wantResponseBody:     `{"message":"login successful"}`,
+			wantResponseBody:     `login successful`,
 			wantDetectionRuleIDs: []string{},
 		},
 		"Failed Login": {
@@ -69,7 +68,7 @@ func TestStart_Integration(t *testing.T) {
 				return r
 			}(),
 			wantStatusCode:       403,
-			wantResponseBody:     `{"error":"login failed"}`,
+			wantResponseBody:     `failed to login`,
 			wantDetectionRuleIDs: []string{},
 		},
 		"Block SQL Injection": {
@@ -126,20 +125,11 @@ func loginController(c *gin.Context) {
 
 	err := insecureLogin(c.Request.Context(), email, password)
 	if err != nil {
-		var actionErr *action.BlockError
-		if errors.As(err, &actionErr) {
-			return
-		}
-
-		c.JSON(403, gin.H{
-			"error": err.Error(),
-		})
+		c.Data(http.StatusForbidden, "text/html", []byte("failed to login"))
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"message": "login successful",
-	})
+	c.Data(http.StatusOK, "application/json", []byte(`login successful`))
 }
 
 func insecureLogin(ctx context.Context, email, password string) error {

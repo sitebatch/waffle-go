@@ -97,8 +97,14 @@ func Start(opts ...Options) error {
 	return nil
 }
 
+// SetBlockResponseTemplateHTML sets the HTML template for block responses.
 func SetBlockResponseTemplateHTML(html []byte) {
 	response.SetBlockResponseTemplateHTML(html)
+}
+
+// SetBlockResponseTemplateJSON sets the JSON template for block responses.
+func SetBlockResponseTemplateJSON(json []byte) {
+	response.SetBlockResponseTemplateJSON(json)
 }
 
 // SetLogger sets a global logger for Waffle.

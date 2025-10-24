@@ -33,12 +33,13 @@ func GetBlockResponseTemplateJSON() []byte {
 	return blockResponseTemplateJSON.Load().([]byte)
 }
 
-func BlockResponseHandler() http.Handler {
+func BlockResponseHandler(contentType string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 
 		accept := r.Header.Get("Accept")
-		if strings.Contains(accept, "application/json") {
+
+		if strings.Contains(contentType, "application/json") || strings.Contains(accept, "application/json") {
 			w.Header().Add("Content-Type", "application/json")
 			_, _ = w.Write(GetBlockResponseTemplateJSON())
 			return

@@ -14,7 +14,7 @@ var rootCmd = &cobra.Command{
 var dumpDefaultRulesCmd = &cobra.Command{
 	Use: "dump-default-rules",
 	Run: func(cmd *cobra.Command, args []string) {
-		os.Stdout.Write(rule.DefaultRawRules())
+		os.Stdout.Write(rule.DefaultRuleSetJSON())
 	},
 }
 

@@ -89,7 +89,7 @@ func TestWrapHandler(t *testing.T) {
 			waffle.SetBlockResponseTemplateHTML([]byte("request blocked"))
 
 			if tt.waffleRule != nil {
-				require.NoError(t, waffle.Start(waffle.WithOverrideRules(tt.waffleRule)))
+				require.NoError(t, waffle.Start(waffle.WithRule(tt.waffleRule)))
 			} else {
 				require.NoError(t, waffle.Start())
 			}

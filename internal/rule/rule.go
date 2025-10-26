@@ -4,14 +4,15 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"sync/atomic"
 
 	"github.com/sitebatch/waffle-go/internal/rule/validator"
 )
 
 //go:embed rules.json
-var rulesJSON []byte
+var defaultRuleSetJSON []byte
 
-var LoadedRule *RuleSet
+var LoadedRuleSet = defaultRuleSetValue()
 
 type RuleSet struct {
 	Version string
@@ -41,34 +42,31 @@ type Condition struct {
 	Threshold float64 `json:"threshold,omitempty"`
 }
 
-func DefaultRawRules() []byte {
-	return rulesJSON
+func defaultRuleSetValue() *atomic.Value {
+	v := &atomic.Value{}
+	v.Store(&RuleSet{})
+	return v
 }
 
-func LoadRules(rulesJSON []byte) error {
-	RestRules()
-
-	if err := json.Unmarshal(rulesJSON, &LoadedRule); err != nil {
-		return err
-	}
-
-	if err := LoadedRule.Validate(); err != nil {
-		return err
-	}
-
-	return nil
+func DefaultRuleSetJSON() []byte {
+	return defaultRuleSetJSON
 }
 
-func LoadDefaultRules() error {
-	RestRules()
+func GetRuleSet() *RuleSet {
+	return LoadedRuleSet.Load().(*RuleSet)
+}
 
-	if err := json.Unmarshal(rulesJSON, &LoadedRule); err != nil {
+func LoadRuleSet(jsonRuleSet []byte) error {
+	var ruleSet *RuleSet
+	if err := json.Unmarshal(jsonRuleSet, &ruleSet); err != nil {
 		return err
 	}
 
-	if err := LoadedRule.Validate(); err != nil {
+	if err := ruleSet.Validate(); err != nil {
 		return err
 	}
+
+	LoadedRuleSet.Store(ruleSet)
 
 	return nil
 }
@@ -185,8 +183,4 @@ func (c Condition) validateRegex() error {
 	}
 
 	return nil
-}
-
-func RestRules() {
-	LoadedRule = nil
 }

@@ -119,7 +119,7 @@ func TestWafMiddleware(t *testing.T) {
 			bodyBytes, err := json.Marshal(body)
 			require.NoError(t, err)
 
-			waffle.Start(waffle.WithOverrideRules(tt.waffleRule))
+			waffle.Start(waffle.WithRule(tt.waffleRule))
 
 			req, err := http.NewRequest("POST", "/query", bytes.NewBuffer(bodyBytes))
 			require.NoError(t, err)

@@ -30,7 +30,7 @@ func (w *mockWaf) Inspect(data inspector.InspectData) ([]waf.DetectionEvent, err
 func TestInitializeWafOperation(t *testing.T) {
 	t.Parallel()
 
-	require.NoError(t, rule.LoadDefaultRules())
+	require.NoError(t, rule.LoadRuleSet(rule.DefaultRuleSetJSON()))
 
 	testCases := map[string]struct {
 		opts                 []wafEmitter.WafOperationContextOption

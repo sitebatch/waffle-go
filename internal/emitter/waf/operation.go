@@ -65,7 +65,7 @@ func NewWafOperation(parent operation.Operation, w waf.WAF, wafOpCtx *wafcontext
 func InitializeWafOperation(ctx context.Context, opts ...WafOperationContextOption) (*WafOperation, context.Context) {
 	parent, _ := operation.FindOperationFromContext(ctx)
 	wafCtx := wafcontext.NewWafOperationContext()
-	op := NewWafOperation(parent, waf.NewWAF(rule.LoadedRule), wafCtx)
+	op := NewWafOperation(parent, waf.NewWAF(rule.GetRuleSet()), wafCtx)
 
 	for _, opt := range opts {
 		opt(op)

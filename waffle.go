@@ -21,7 +21,7 @@ import (
 )
 
 type Config struct {
-	OverrideRulesJSON []byte
+	OverrideRuleJSON []byte
 }
 
 func defaultConfig() *Config {
@@ -29,8 +29,8 @@ func defaultConfig() *Config {
 }
 
 type Waffle struct {
-	listeners         []listener.Listener
-	overrideRulesJSON []byte
+	listeners        []listener.Listener
+	overrideRuleJSON []byte
 }
 
 var listeners = []listener.NewListener{
@@ -43,12 +43,12 @@ var listeners = []listener.NewListener{
 }
 
 func (w *Waffle) start() error {
-	if len(w.overrideRulesJSON) > 0 {
-		if err := rule.LoadRules(w.overrideRulesJSON); err != nil {
+	if w.overrideRuleJSON != nil {
+		if err := rule.LoadRuleSet(w.overrideRuleJSON); err != nil {
 			return err
 		}
 	} else {
-		if err := rule.LoadDefaultRules(); err != nil {
+		if err := rule.LoadRuleSet(rule.DefaultRuleSetJSON()); err != nil {
 			return err
 		}
 	}
@@ -73,9 +73,9 @@ func (w *Waffle) start() error {
 
 type Options func(*Config)
 
-func WithOverrideRules(ruleJSON []byte) Options {
+func WithRule(ruleJSON []byte) Options {
 	return func(c *Config) {
-		c.OverrideRulesJSON = ruleJSON
+		c.OverrideRuleJSON = ruleJSON
 	}
 }
 
@@ -87,7 +87,7 @@ func Start(opts ...Options) error {
 	}
 
 	w := &Waffle{
-		overrideRulesJSON: c.OverrideRulesJSON,
+		overrideRuleJSON: c.OverrideRuleJSON,
 	}
 
 	if err := w.start(); err != nil {

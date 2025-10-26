@@ -11,13 +11,13 @@ type WAF interface {
 }
 
 type waf struct {
-	rules         *rule.RuleSet
+	ruleSet       *rule.RuleSet
 	ruleEvaluator *RuleEvaluator
 }
 
-func NewWAF(rules *rule.RuleSet) WAF {
+func NewWAF(ruleSet *rule.RuleSet) WAF {
 	return &waf{
-		rules:         rules,
+		ruleSet:       ruleSet,
 		ruleEvaluator: NewRuleEvaluator(inspector.NewInspector()),
 	}
 }
@@ -25,8 +25,8 @@ func NewWAF(rules *rule.RuleSet) WAF {
 func (w *waf) Inspect(data inspector.InspectData) ([]DetectionEvent, error) {
 	var detectionEvents []DetectionEvent
 
-	for _, rule := range w.rules.Rules {
-		results, doBlock := w.ruleEvaluator.Eval(rule, data)
+	for _, r := range w.ruleSet.Rules {
+		results, doBlock := w.ruleEvaluator.Eval(r, data)
 
 		for _, result := range results {
 			detectionEvents = append(detectionEvents, NewDetectionEvent(data.WafOperationContext, *result))

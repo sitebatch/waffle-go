@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/sitebatch/waffle-go"
-	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/contrib/net/http"
 	emitterHttp "github.com/sitebatch/waffle-go/internal/emitter/http"
+	"github.com/sitebatch/waffle-go/waf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -45,8 +45,9 @@ func TestWrapClient(t *testing.T) {
 			resp, err := c.Do(req)
 			if tt.expectErr {
 				assert.Error(t, err)
-				var berr *action.BlockError
-				assert.ErrorAs(t, err, &berr)
+
+				var secErr *waf.SecurityBlockingError
+				assert.ErrorAs(t, err, &secErr)
 				return
 			}
 

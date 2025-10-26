@@ -1,7 +1,6 @@
 package waf
 
 import (
-	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/rule"
 )
@@ -34,10 +33,7 @@ func (w *waf) Inspect(data inspector.InspectData) ([]DetectionEvent, error) {
 		}
 
 		if doBlock {
-			return detectionEvents, &action.BlockError{
-				RuleID:    rule.ID,
-				Inspector: results[0].InspectBy,
-			}
+			return detectionEvents, &SecurityBlockingError{}
 		}
 	}
 

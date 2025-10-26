@@ -2,10 +2,8 @@ package waf
 
 import (
 	"context"
-	"errors"
 	"sync"
 
-	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/exporter"
 	"github.com/sitebatch/waffle-go/handler"
 	"github.com/sitebatch/waffle-go/internal/inspector"
@@ -23,14 +21,14 @@ type WafOperation struct {
 	wafOperationContext *wafcontext.WafOperationContext
 
 	eventRecorder *waf.EventRecorder
-	blockErr      *action.BlockError
+	blockErr      *waf.SecurityBlockingError
 
 	mu sync.Mutex
 }
 
 type WafOperationArg struct{}
 type WafOperationResult struct {
-	BlockErr        *action.BlockError
+	BlockErr        *waf.SecurityBlockingError
 	DetectionEvents []waf.DetectionEvent
 }
 
@@ -88,9 +86,8 @@ func (wafOp *WafOperation) Run(op operation.Operation, inspectData inspector.Ins
 	}
 
 	if err != nil {
-		var blockError *action.BlockError
-		if errors.As(err, &blockError) {
-			wafOp.blockErr = blockError
+		if waf.IsSecurityBlockingError(err) {
+			wafOp.blockErr = err.(*waf.SecurityBlockingError)
 			return
 		}
 

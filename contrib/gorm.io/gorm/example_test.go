@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/sitebatch/waffle-go"
-	"github.com/sitebatch/waffle-go/action"
 	waffleSql "github.com/sitebatch/waffle-go/contrib/database/sql"
 	"github.com/sitebatch/waffle-go/internal/emitter/http"
+	"github.com/sitebatch/waffle-go/waf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
@@ -53,6 +53,6 @@ func Test(t *testing.T) {
 	var product2 Product
 	result := tx.Where(fmt.Sprintf("code = '%s'", "D42') OR 1=1--")).First(&product2)
 	assert.Error(t, result.Error)
-	var blockErr *action.BlockError
-	assert.ErrorAs(t, result.Error, &blockErr)
+	var secErr *waf.SecurityBlockingError
+	assert.ErrorAs(t, result.Error, &secErr)
 }

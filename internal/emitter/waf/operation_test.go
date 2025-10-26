@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/emitter/http"
 	wafEmitter "github.com/sitebatch/waffle-go/internal/emitter/waf"
 	"github.com/sitebatch/waffle-go/internal/inspector"
@@ -136,34 +135,31 @@ func TestWafOperation_Run(t *testing.T) {
 			arrange: arrange{
 				mockInspectFunc: func(data inspector.InspectData) ([]waf.DetectionEvent, error) {
 					return []waf.DetectionEvent{
-							waf.NewDetectionEvent(data.WafOperationContext, waf.EvalResult{
-								Rule: rule.Rule{
-									ID: "1",
-									Conditions: []rule.Condition{
-										{
-											Inspector: "regex",
-											InspectTarget: []rule.InspectTarget{
-												{
-													Target: "http.request.header",
-													Keys:   []string{"User-Agent"},
-												},
+						waf.NewDetectionEvent(data.WafOperationContext, waf.EvalResult{
+							Rule: rule.Rule{
+								ID: "1",
+								Conditions: []rule.Condition{
+									{
+										Inspector: "regex",
+										InspectTarget: []rule.InspectTarget{
+											{
+												Target: "http.request.header",
+												Keys:   []string{"User-Agent"},
 											},
-											Regex: "BadBot",
 										},
+										Regex: "BadBot",
 									},
-									Action: "block",
 								},
-								InspectBy: "regex",
-								InspectResult: &inspector.InspectResult{
-									Target:  inspector.InspectTargetHttpRequestHeader,
-									Message: "Suspicious pattern detected: 'BadBot' matches regex 'BadBot'",
-									Payload: "BadBot",
-								},
-							}),
-						}, &action.BlockError{
-							RuleID:    "1",
-							Inspector: "regex",
-						}
+								Action: "block",
+							},
+							InspectBy: "regex",
+							InspectResult: &inspector.InspectResult{
+								Target:  inspector.InspectTargetHttpRequestHeader,
+								Message: "Suspicious pattern detected: 'BadBot' matches regex 'BadBot'",
+								Payload: "BadBot",
+							},
+						}),
+					}, &waf.SecurityBlockingError{}
 				},
 			},
 			wantDetectionEventSize: 1,
@@ -275,26 +271,20 @@ func TestWafOperation_FinishInspect(t *testing.T) {
 			arrange: arrange{
 				mockInspectFunc: func(data inspector.InspectData) ([]waf.DetectionEvent, error) {
 					return []waf.DetectionEvent{
-							waf.NewDetectionEvent(data.WafOperationContext, waf.EvalResult{
-								Rule:      dummyBlockRule,
-								InspectBy: "regex",
-								InspectResult: &inspector.InspectResult{
-									Target:  inspector.InspectTargetHttpRequestHeader,
-									Message: "Suspicious pattern detected: 'BadBot' matches regex 'BadBot'",
-									Payload: "BadBot",
-								},
-							}),
-						}, &action.BlockError{
-							RuleID:    "1",
-							Inspector: "regex",
-						}
+						waf.NewDetectionEvent(data.WafOperationContext, waf.EvalResult{
+							Rule:      dummyBlockRule,
+							InspectBy: "regex",
+							InspectResult: &inspector.InspectResult{
+								Target:  inspector.InspectTargetHttpRequestHeader,
+								Message: "Suspicious pattern detected: 'BadBot' matches regex 'BadBot'",
+								Payload: "BadBot",
+							},
+						}),
+					}, &waf.SecurityBlockingError{}
 				},
 			},
 			wantResult: &wafEmitter.WafOperationResult{
-				BlockErr: &action.BlockError{
-					RuleID:    "1",
-					Inspector: "regex",
-				},
+				BlockErr: &waf.SecurityBlockingError{},
 				DetectionEvents: []waf.DetectionEvent{
 					waf.NewDetectionEvent(wafOpCtx, waf.EvalResult{
 						Rule:      dummyBlockRule,

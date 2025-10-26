@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/sitebatch/waffle-go"
-	"github.com/sitebatch/waffle-go/action"
 	waffleHttp "github.com/sitebatch/waffle-go/contrib/net/http"
 	waffleOs "github.com/sitebatch/waffle-go/contrib/os"
 	"github.com/sitebatch/waffle-go/waf"
@@ -47,7 +46,7 @@ func TestWafMiddleware(t *testing.T) {
 		"blocked": {
 			controller: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if _, err := waffleOs.ProtectReadFile(r.Context(), "/var/run/secrets/path/to/file"); err != nil {
-					if action.IsBlockError(err) {
+					if waf.IsSecurityBlockingError(err) {
 						// WAF has already handled the block response.
 						return
 					}

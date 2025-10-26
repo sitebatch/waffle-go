@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/sitebatch/waffle-go/action"
 	"github.com/sitebatch/waffle-go/internal/inspector"
 	"github.com/sitebatch/waffle-go/internal/rule"
 	"github.com/sitebatch/waffle-go/waf"
@@ -108,10 +107,7 @@ func TestWAF_Inspect(t *testing.T) {
 					},
 				}),
 			},
-			wantError: &action.BlockError{
-				RuleID:    "2",
-				Inspector: "regex",
-			},
+			wantError: &waf.SecurityBlockingError{},
 		},
 	}
 

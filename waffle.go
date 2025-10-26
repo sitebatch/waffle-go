@@ -20,19 +20,6 @@ import (
 	"github.com/sitebatch/waffle-go/waf/wafcontext"
 )
 
-type Config struct {
-	OverrideRuleJSON []byte
-}
-
-func defaultConfig() *Config {
-	return &Config{}
-}
-
-type Waffle struct {
-	listeners        []listener.Listener
-	overrideRuleJSON []byte
-}
-
 var listeners = []listener.NewListener{
 	http.NewHTTPSecurity,
 	http.NewHTTPClientSecurity,
@@ -42,52 +29,33 @@ var listeners = []listener.NewListener{
 	account_takeover.NewAccountTakeoverSecurity,
 }
 
-func (w *Waffle) start() error {
-	if w.overrideRuleJSON != nil {
-		if err := rule.LoadRuleSet(w.overrideRuleJSON); err != nil {
-			return err
-		}
-	} else {
-		if err := rule.LoadRuleSet(rule.DefaultRuleSetJSON()); err != nil {
-			return err
-		}
-	}
+type Config struct {
+	RuleJSON []byte
+}
 
-	rootOp := operation.NewRootOperation()
-	newListeners := make([]listener.Listener, len(listeners))
-
-	for _, newListener := range listeners {
-		l, err := newListener(rootOp)
-		if err != nil {
-			return err
-		}
-
-		newListeners = append(newListeners, l)
-	}
-
-	w.listeners = newListeners
-	operation.InitRootOperation(rootOp)
-
-	return nil
+type Waffle struct {
+	listeners []listener.Listener
+	ruleJSON  []byte
 }
 
 type Options func(*Config)
 
 func WithRule(ruleJSON []byte) Options {
 	return func(c *Config) {
-		c.OverrideRuleJSON = ruleJSON
+		c.RuleJSON = ruleJSON
 	}
 }
 
 func Start(opts ...Options) error {
 	response.InitResponseWriterFeature()
+
 	c := defaultConfig()
 	for _, opt := range opts {
 		opt(c)
 	}
 
 	w := &Waffle{
-		overrideRuleJSON: c.OverrideRuleJSON,
+		ruleJSON: c.RuleJSON,
 	}
 
 	if err := w.start(); err != nil {
@@ -133,5 +101,34 @@ func SetUser(ctx context.Context, userID string) error {
 	}
 
 	op.SetMeta(string(wafcontext.UserID), userID)
+	return nil
+}
+
+func defaultConfig() *Config {
+	return &Config{
+		RuleJSON: rule.DefaultRuleSetJSON(),
+	}
+}
+
+func (w *Waffle) start() error {
+	if err := rule.LoadRuleSet(w.ruleJSON); err != nil {
+		return err
+	}
+
+	rootOp := operation.NewRootOperation()
+	newListeners := make([]listener.Listener, len(listeners))
+
+	for _, newListener := range listeners {
+		l, err := newListener(rootOp)
+		if err != nil {
+			return err
+		}
+
+		newListeners = append(newListeners, l)
+	}
+
+	w.listeners = newListeners
+	operation.InitRootOperation(rootOp)
+
 	return nil
 }

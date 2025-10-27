@@ -1,0 +1,128 @@
+{
+  "version": "0.1",
+  "rules": [
+    {
+      "id": "detect-security-scanner",
+      "name": "Detects a known security scanner",
+      "tags": ["security scanner", "enumeration"],
+      "action": "monitor",
+      "conditions": [
+        {
+          "inspector": "regex",
+          "inspect_target": [
+            {
+              "target": "http.request.header",
+              "keys": ["User-Agent"]
+            }
+          ],
+          "regex": "detect-security-scanner"
+        }
+      ]
+    },
+    {
+      "id": "block-security-scanner",
+      "name": "Blocks a known security scanner",
+      "tags": ["security scanner", "enumeration"],
+      "action": "block",
+      "conditions": [
+        {
+          "inspector": "regex",
+          "inspect_target": [
+            {
+              "target": "http.request.header",
+              "keys": ["User-Agent"]
+            }
+          ],
+          "regex": "block-security-scanner"
+        }
+      ]
+    },
+    {
+      "id": "xss-attempts",
+      "name": "XSS attempts",
+      "tags": ["xss", "attack attempts"],
+      "action": "monitor",
+      "conditions": [
+        {
+          "inspector": "libinjection_xss",
+          "inspect_target": [
+            {
+              "target": "http.request.query"
+            },
+            {
+              "target": "http.request.body"
+            },
+            {
+              "target": "graphql.request.variables"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sql-injection-exploited",
+      "name": "SQL Injection exploited",
+      "tags": ["sql injection", "exploited"],
+      "action": "block",
+      "conditions": [
+        {
+          "inspector": "sqli",
+          "inspect_target": [
+            {
+              "target": "sql.query"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sensitive-file-opened",
+      "name": "Sensitive file opened",
+      "tags": ["sensitive files", "exploited"],
+      "action": "block",
+      "conditions": [
+        {
+          "inspector": "lfi",
+          "inspect_target": [
+            {
+              "target": "os.file.open"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ssrf-exploited",
+      "name": "SSRF exploited",
+      "tags": ["ssrf", "exploited"],
+      "action": "block",
+      "conditions": [
+        {
+          "inspector": "ssrf",
+          "inspect_target": [
+            {
+              "target": "http.client.request.url"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "account-takeover-detected",
+      "name": "Account Takeover detected",
+      "tags": ["account takeover", "attack attempts"],
+      "action": "block",
+      "conditions": [
+        {
+          "inspector": "account_takeover",
+          "inspect_target": [
+            {
+              "target": "application.user.login.account_takeover"
+            }
+          ],
+          "threshold": 100
+        }
+      ]
+    }
+  ]
+}

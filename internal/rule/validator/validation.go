@@ -7,8 +7,8 @@ import (
 )
 
 func ValidateInspector(inspectorName, target string) error {
-	inspectors := inspector.NewInspector()
-	i, ok := inspectors[inspectorName]
+	inspectors := inspector.NewInspectors()
+	i, ok := inspectors[inspector.InspectorName(inspectorName)]
 	if !ok {
 		return fmt.Errorf("inspector %s not found", inspectorName)
 	}

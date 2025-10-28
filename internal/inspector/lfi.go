@@ -10,16 +10,8 @@ type LFIInspector struct{}
 
 type LFIInspectorArgs struct{}
 
-func (a *LFIInspectorArgs) IsArgOf() string {
-	return string(LFIInspectorName)
-}
-
 func NewLFIInspector() Inspector {
 	return &LFIInspector{}
-}
-
-func (i *LFIInspector) Name() InspectorName {
-	return LFIInspectorName
 }
 
 func (i *LFIInspector) IsSupportTarget(target InspectTarget) bool {

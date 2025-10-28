@@ -1,7 +1,6 @@
 package inspector
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/sitebatch/waffle-go/internal/inspector/libinjection"
@@ -19,28 +18,12 @@ type LibInjectionXSSInspectorArgs struct {
 	InspectTargetOptions []InspectTargetOptions
 }
 
-func (r *LibInjectionSQLIInspectorArgs) IsArgOf() string {
-	return string(LibInjectionSQLIInspectorName)
-}
-
-func (r *LibInjectionXSSInspectorArgs) IsArgOf() string {
-	return string(LibInjectionXSSInspectorName)
-}
-
 func NewLibInjectionSQLIInspector() Inspector {
 	return &LibInjectionSQLIInspector{}
 }
 
 func NewLibInjectionXSSInspector() Inspector {
 	return &LibInjectionXSSInspector{}
-}
-
-func (r *LibInjectionSQLIInspector) Name() InspectorName {
-	return LibInjectionSQLIInspectorName
-}
-
-func (r *LibInjectionXSSInspector) Name() InspectorName {
-	return LibInjectionXSSInspectorName
 }
 
 func (r *LibInjectionSQLIInspector) IsSupportTarget(target InspectTarget) bool {
@@ -51,13 +34,8 @@ func (r *LibInjectionXSSInspector) IsSupportTarget(target InspectTarget) bool {
 	return true
 }
 
-func (r *LibInjectionSQLIInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
-	args, ok := inspectorArgs.(*LibInjectionSQLIInspectorArgs)
-	if !ok {
-		return nil, errors.New("invalid args, not LibInjectionSQLIInspectorArgs")
-	}
-
-	for _, opt := range args.InspectTargetOptions {
+func (r *LibInjectionSQLIInspector) Inspect(inspectData InspectData, args InspectorArgs) (*InspectResult, error) {
+	for _, opt := range args.TargetOptions {
 		if _, ok := inspectData.Target[opt.Target]; !ok {
 			continue
 		}
@@ -81,13 +59,8 @@ func (r *LibInjectionSQLIInspector) Inspect(inspectData InspectData, inspectorAr
 	return nil, nil
 }
 
-func (r *LibInjectionXSSInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
-	args, ok := inspectorArgs.(*LibInjectionXSSInspectorArgs)
-	if !ok {
-		return nil, errors.New("invalid args, not LibInjectionXSSInspectorArgs")
-	}
-
-	for _, opt := range args.InspectTargetOptions {
+func (r *LibInjectionXSSInspector) Inspect(inspectData InspectData, args InspectorArgs) (*InspectResult, error) {
+	for _, opt := range args.TargetOptions {
 		if _, ok := inspectData.Target[opt.Target]; !ok {
 			continue
 		}

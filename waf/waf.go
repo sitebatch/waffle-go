@@ -18,7 +18,7 @@ type waf struct {
 func NewWAF(ruleSet *rule.RuleSet) WAF {
 	return &waf{
 		ruleSet:       ruleSet,
-		ruleEvaluator: NewRuleEvaluator(inspector.NewInspector()),
+		ruleEvaluator: NewRuleEvaluator(inspector.NewInspectors()),
 	}
 }
 

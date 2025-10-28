@@ -27,9 +27,11 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 						inspector.InspectTargetHttpRequestQuery: types.NewStringValue("q=/etc/passwd"),
 					},
 				},
-				inspectorArgs: &inspector.MatchListInspectorArgs{
-					List: []string{"etc/test", "etc/passwd", "etc/hosts"},
-					InspectTargetOptions: []inspector.InspectTargetOptions{
+				inspectorArgs: inspector.InspectorArgs{
+					MatchListInspectorArgs: inspector.MatchListInspectorArgs{
+						List: []string{"etc/test", "etc/passwd", "etc/hosts"},
+					},
+					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestQuery,
 						},
@@ -45,9 +47,11 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 						inspector.InspectTargetHttpRequestQuery: types.NewStringValue("q=/etc/passwd"),
 					},
 				},
-				inspectorArgs: &inspector.MatchListInspectorArgs{
-					List: []string{"etc/test", "etc/shadow", "etc/hosts"},
-					InspectTargetOptions: []inspector.InspectTargetOptions{
+				inspectorArgs: inspector.InspectorArgs{
+					MatchListInspectorArgs: inspector.MatchListInspectorArgs{
+						List: []string{"etc/test", "etc/passwd", "etc/hosts"},
+					},
+					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestQuery,
 						},
@@ -62,9 +66,11 @@ func TestMatchlistInspector_Inspect(t *testing.T) {
 						inspector.InspectTargetHttpRequestQuery: types.NewStringValue("q=/etc/passwd"),
 					},
 				},
-				inspectorArgs: &inspector.MatchListInspectorArgs{
-					List: []string{"etc/test", "etc/passwd", "etc/hosts"},
-					InspectTargetOptions: []inspector.InspectTargetOptions{
+				inspectorArgs: inspector.InspectorArgs{
+					MatchListInspectorArgs: inspector.MatchListInspectorArgs{
+						List: []string{"etc/test", "etc/passwd", "etc/hosts"},
+					},
+					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestURL,
 						},

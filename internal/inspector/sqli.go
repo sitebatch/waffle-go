@@ -9,16 +9,8 @@ type SQLiInspector struct{}
 type SQLiInspectorArgs struct {
 }
 
-func (r *SQLiInspectorArgs) IsArgOf() string {
-	return string(SQLiInspectorName)
-}
-
 func NewSQLiInspector() Inspector {
 	return &SQLiInspector{}
-}
-
-func (r *SQLiInspector) Name() InspectorName {
-	return SQLiInspectorName
 }
 
 func (r *SQLiInspector) IsSupportTarget(target InspectTarget) bool {

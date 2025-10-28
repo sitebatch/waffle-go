@@ -67,49 +67,19 @@ func (e *RuleEvaluator) runInspector(condition rule.Condition, data inspector.In
 		return nil, errors.New("inspector not found: " + condition.Inspector)
 	}
 
-	switch i.Name() {
-	case inspector.RegexInspectorName:
-		return i.Inspect(data, &inspector.RegexInspectorArgs{
-			Regex:                condition.Regex,
-			InspectTargetOptions: ToInspectTargetOptions(condition.InspectTarget),
-		})
+	return i.Inspect(data, NewInspectorArgsFromCondition(condition))
+}
 
-	case inspector.MatchListInspectorName:
-		return i.Inspect(data, &inspector.MatchListInspectorArgs{
-			List:                 condition.MatchList,
-			InspectTargetOptions: ToInspectTargetOptions(condition.InspectTarget),
-		})
-
-	case inspector.LibInjectionSQLIInspectorName:
-		return i.Inspect(data, &inspector.LibInjectionSQLIInspectorArgs{
-			InspectTargetOptions: ToInspectTargetOptions(condition.InspectTarget),
-		})
-
-	case inspector.LibInjectionXSSInspectorName:
-		return i.Inspect(data, &inspector.LibInjectionXSSInspectorArgs{
-			InspectTargetOptions: ToInspectTargetOptions(condition.InspectTarget),
-		})
-
-	case inspector.SQLiInspectorName:
-		return i.Inspect(data, &inspector.SQLiInspectorArgs{})
-
-	case inspector.LFIInspectorName:
-		return i.Inspect(data, &inspector.LFIInspectorArgs{})
-
-	case inspector.SSRFInspectorName:
-		return i.Inspect(data, &inspector.SSRFInspectorArgs{})
-
-	case inspector.AccountTakeoverInspectorName:
-		return i.Inspect(data, &inspector.AccountTakeoverInspectorArgs{
-			LoginRateLimitPerSecond: rate.Limit(condition.Threshold),
-		})
-
-	default:
-		return i.Inspect(data, nil)
+func NewInspectorArgsFromCondition(condition rule.Condition) inspector.InspectorArgs {
+	return inspector.InspectorArgs{
+		TargetOptions:           toInspectTargetOptions(condition.InspectTarget),
+		Regex:                   condition.Regex,
+		MatchList:               condition.MatchList,
+		LoginRateLimitPerSecond: rate.Limit(condition.Threshold),
 	}
 }
 
-func ToInspectTargetOptions(inspectTargets []rule.InspectTarget) []inspector.InspectTargetOptions {
+func toInspectTargetOptions(inspectTargets []rule.InspectTarget) []inspector.InspectTargetOptions {
 	var inspectTargetOptions []inspector.InspectTargetOptions
 
 	for _, inspectTarget := range inspectTargets {

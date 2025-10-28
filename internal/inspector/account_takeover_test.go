@@ -36,7 +36,7 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 						),
 					},
 				},
-				inspectorArgs: &inspector.AccountTakeoverInspectorArgs{
+				inspectorArgs: inspector.InspectorArgs{
 					LoginRateLimitPerSecond: rate.Limit(10),
 				},
 			},
@@ -56,7 +56,7 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 						),
 					},
 				},
-				inspectorArgs: &inspector.AccountTakeoverInspectorArgs{
+				inspectorArgs: inspector.InspectorArgs{
 					LoginRateLimitPerSecond: rate.Limit(10),
 				},
 			},
@@ -76,7 +76,7 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 						),
 					},
 				},
-				inspectorArgs: &inspector.AccountTakeoverInspectorArgs{
+				inspectorArgs: inspector.InspectorArgs{
 					LoginRateLimitPerSecond: rate.Limit(10),
 				},
 			},
@@ -96,7 +96,7 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 						),
 					},
 				},
-				inspectorArgs: &inspector.AccountTakeoverInspectorArgs{
+				inspectorArgs: inspector.InspectorArgs{
 					LoginRateLimitPerSecond: rate.Limit(10),
 				},
 			},

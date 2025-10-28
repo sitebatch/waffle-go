@@ -8,6 +8,7 @@ import (
 	"github.com/sitebatch/waffle-go/internal/rule"
 	"github.com/sitebatch/waffle-go/waf"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/time/rate"
 )
 
 type MockInspector struct{}
@@ -194,49 +195,115 @@ func TestRuleEvaluator_Eval(t *testing.T) {
 	}
 }
 
-func TestToInspectTargetOptions(t *testing.T) {
+func TestNewInspectorArgsFromCondition(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input    []rule.InspectTarget
-		expected []inspector.InspectTargetOptions
+		condition rule.Condition
+		want      inspector.InspectorArgs
 	}{
-		"single target without keys": {
-			input: []rule.InspectTarget{
-				{Target: "http.request.url"},
+		"one target": {
+			condition: rule.Condition{
+				InspectTarget: []rule.InspectTarget{
+					{Target: "http.request.url"},
+				},
 			},
-			expected: []inspector.InspectTargetOptions{
-				{Target: "http.request.url"},
-			},
-		},
-		"single target with keys": {
-			input: []rule.InspectTarget{
-				{Target: "http.request.header", Keys: []string{"User-Agent", "Referer"}},
-			},
-			expected: []inspector.InspectTargetOptions{
-				{Target: "http.request.header", Params: []string{"User-Agent", "Referer"}},
+			want: inspector.InspectorArgs{
+				TargetOptions: []inspector.InspectTargetOptions{
+					{
+						Target: "http.request.url",
+					},
+				},
 			},
 		},
-		"multiple targets with and without keys": {
-			input: []rule.InspectTarget{
-				{Target: "http.request.url"},
-				{Target: "http.request.header", Keys: []string{"User-Agent"}},
-				{Target: "http.request.body"},
+		"one target with key": {
+			condition: rule.Condition{
+				InspectTarget: []rule.InspectTarget{
+					{Target: "http.request.header", Keys: []string{"User-Agent", "Referer"}},
+				},
 			},
-			expected: []inspector.InspectTargetOptions{
-				{Target: "http.request.url"},
-				{Target: "http.request.header", Params: []string{"User-Agent"}},
-				{Target: "http.request.body"},
+			want: inspector.InspectorArgs{
+				TargetOptions: []inspector.InspectTargetOptions{
+					{Target: "http.request.header", Params: []string{"User-Agent", "Referer"}},
+				},
+			},
+		},
+		"multiple targets": {
+			condition: rule.Condition{
+				InspectTarget: []rule.InspectTarget{
+					{Target: "http.request.header"},
+					{Target: "http.request.body"},
+				},
+			},
+			want: inspector.InspectorArgs{
+				TargetOptions: []inspector.InspectTargetOptions{
+					{Target: "http.request.header"},
+					{Target: "http.request.body"},
+				},
+			},
+		},
+		"multiple targets with keys": {
+			condition: rule.Condition{
+				InspectTarget: []rule.InspectTarget{
+					{Target: "http.request.header", Keys: []string{"User-Agent", "Referer"}},
+					{Target: "http.request.body"},
+				},
+			},
+			want: inspector.InspectorArgs{
+				TargetOptions: []inspector.InspectTargetOptions{
+					{Target: "http.request.header", Params: []string{"User-Agent", "Referer"}},
+					{Target: "http.request.body"},
+				},
+			},
+		},
+		"with Regex": {
+			condition: rule.Condition{
+				InspectTarget: []rule.InspectTarget{
+					{Target: "http.request.header", Keys: []string{"User-Agent"}},
+				},
+				Regex: "^Bot$",
+			},
+			want: inspector.InspectorArgs{
+				TargetOptions: []inspector.InspectTargetOptions{
+					{Target: "http.request.header", Params: []string{"User-Agent"}},
+				},
+				Regex: "^Bot$",
+			},
+		},
+		"with MatchList": {
+			condition: rule.Condition{
+				InspectTarget: []rule.InspectTarget{
+					{Target: "http.request.query"},
+				},
+				MatchList: []string{"/etc/password"},
+			},
+			want: inspector.InspectorArgs{
+				TargetOptions: []inspector.InspectTargetOptions{
+					{Target: "http.request.query"},
+				},
+				MatchList: []string{"/etc/password"},
+			},
+		},
+		"with Threshold": {
+			condition: rule.Condition{
+				InspectTarget: []rule.InspectTarget{
+					{Target: "http.request.query"},
+				},
+				Threshold: 10,
+			},
+			want: inspector.InspectorArgs{
+				TargetOptions: []inspector.InspectTargetOptions{
+					{Target: "http.request.query"},
+				},
+				LoginRateLimitPerSecond: rate.Limit(10),
 			},
 		},
 	}
 
 	for name, tt := range testCases {
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			result := waf.ToInspectTargetOptions(tt.input)
-			assert.Equal(t, tt.expected, result)
+			got := waf.NewInspectorArgsFromCondition(tt.condition)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

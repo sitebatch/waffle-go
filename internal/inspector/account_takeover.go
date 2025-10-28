@@ -1,7 +1,6 @@
 package inspector
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/sitebatch/waffle-go/internal/inspector/account_takeover"
@@ -31,11 +30,6 @@ func (i *AccountTakeoverInspector) IsSupportTarget(target InspectTarget) bool {
 }
 
 func (i *AccountTakeoverInspector) Inspect(inspectData InspectData, args InspectorArgs) (*InspectResult, error) {
-	inspectorArgs, ok := args.(*AccountTakeoverInspectorArgs)
-	if !ok {
-		return nil, errors.New("invalid args, not AccountTakeoverInspectorArgs")
-	}
-
 	inspectValue := inspectData.Target[InspectTargetAccountTakeover]
 	if inspectValue == nil {
 		return nil, nil
@@ -48,7 +42,7 @@ func (i *AccountTakeoverInspector) Inspect(inspectData InspectData, args Inspect
 		return nil, nil
 	}
 
-	if err := account_takeover.IsLimit(clientIP[0], userID[0], inspectorArgs.LoginRateLimitPerSecond); err != nil {
+	if err := account_takeover.IsLimit(clientIP[0], userID[0], args.LoginRateLimitPerSecond); err != nil {
 		return &InspectResult{
 			Target:  InspectTargetAccountTakeover,
 			Payload: fmt.Sprintf("client_ip: %s, user_id: %s", clientIP[0], userID[0]),

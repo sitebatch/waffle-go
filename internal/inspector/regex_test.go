@@ -22,17 +22,6 @@ func TestRegexInspector_Inspect(t *testing.T) {
 		suspiciousPayload string
 		expectError       bool
 	}{
-		"when invalid args, return error": {
-			arrange: arrange{
-				inspectData: inspector.InspectData{
-					Target: map[inspector.InspectTarget]types.InspectTargetValue{
-						inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://malicious.com"),
-					},
-				},
-				inspectorArgs: &inspector.LibInjectionSQLIInspectorArgs{},
-			},
-			expectError: true,
-		},
 		"inspect data has multiple targets": {
 			arrange: arrange{
 				inspectData: inspector.InspectData{
@@ -41,9 +30,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 						inspector.InspectTargetHttpRequestURL:  types.NewStringValue("http://malicious.com"),
 					},
 				},
-				inspectorArgs: &inspector.RegexInspectorArgs{
+				inspectorArgs: inspector.InspectorArgs{
 					Regex: "^http://malicious.com$",
-					InspectTargetOptions: []inspector.InspectTargetOptions{
+					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestURL,
 						},
@@ -60,9 +49,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 						inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://malicious.com"),
 					},
 				},
-				inspectorArgs: &inspector.RegexInspectorArgs{
+				inspectorArgs: inspector.InspectorArgs{
 					Regex: "^http://malicious.com$",
-					InspectTargetOptions: []inspector.InspectTargetOptions{
+					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestURL,
 						},
@@ -79,9 +68,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 						inspector.InspectTargetHttpRequestURL: types.NewStringValue("http://example.com"),
 					},
 				},
-				inspectorArgs: &inspector.RegexInspectorArgs{
+				inspectorArgs: inspector.InspectorArgs{
 					Regex: "^http://malicious.com$",
-					InspectTargetOptions: []inspector.InspectTargetOptions{
+					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestURL,
 						},
@@ -98,9 +87,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 						inspector.InspectTargetHttpRequestPath: types.NewStringValue("/path/to/file"),
 					},
 				},
-				inspectorArgs: &inspector.RegexInspectorArgs{
+				inspectorArgs: inspector.InspectorArgs{
 					Regex: "^http://malicious.com$",
-					InspectTargetOptions: []inspector.InspectTargetOptions{
+					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestPath,
 						},
@@ -122,9 +111,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 						}),
 					},
 				},
-				inspectorArgs: &inspector.RegexInspectorArgs{
+				inspectorArgs: inspector.InspectorArgs{
 					Regex: "^Firefox$",
-					InspectTargetOptions: []inspector.InspectTargetOptions{
+					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestHeader,
 							Params: []string{"User-Agent"},
@@ -144,9 +133,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 						}),
 					},
 				},
-				inspectorArgs: &inspector.RegexInspectorArgs{
+				inspectorArgs: inspector.InspectorArgs{
 					Regex: "^Edge$",
-					InspectTargetOptions: []inspector.InspectTargetOptions{
+					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestHeader,
 							Params: []string{"User-Agent"},
@@ -165,9 +154,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 						}),
 					},
 				},
-				inspectorArgs: &inspector.RegexInspectorArgs{
+				inspectorArgs: inspector.InspectorArgs{
 					Regex: "^example.com$",
-					InspectTargetOptions: []inspector.InspectTargetOptions{
+					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestHeader,
 							Params: []string{"User-Agent"},

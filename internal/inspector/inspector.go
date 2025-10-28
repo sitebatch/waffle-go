@@ -1,5 +1,7 @@
 package inspector
 
+import "golang.org/x/time/rate"
+
 type InspectorName string
 
 var (
@@ -26,6 +28,20 @@ func NewInspector() map[string]Inspector {
 	}
 }
 
+type InspectorArgs struct {
+	TargetOptions []InspectTargetOptions
+
+	Regex     string
+	MatchList []string
+
+	LoginRateLimitPerSecond rate.Limit
+}
+
+type InspectTargetOptions struct {
+	Target InspectTarget
+	Params []string
+}
+
 type Inspector interface {
 	// Name returns the name of the inspector
 	Name() InspectorName
@@ -35,15 +51,6 @@ type Inspector interface {
 	Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error)
 	// IsSupportTarget returns whether the inspector supports the target
 	IsSupportTarget(target InspectTarget) bool
-}
-
-type InspectorArgs interface {
-	IsArgOf() string
-}
-
-type InspectTargetOptions struct {
-	Target InspectTarget
-	Params []string
 }
 
 // InspectResult represents the result of an inspection

@@ -1,7 +1,6 @@
 package inspector
 
 import (
-	"errors"
 	"fmt"
 
 	regexp "github.com/wasilibs/go-re2"
@@ -32,13 +31,8 @@ func (r *RegexInspector) IsSupportTarget(target InspectTarget) bool {
 	return true
 }
 
-func (r *RegexInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
-	args, ok := inspectorArgs.(*RegexInspectorArgs)
-	if !ok {
-		return nil, errors.New("invalid args, not RegexInspectorArgs")
-	}
-
-	for _, opt := range args.InspectTargetOptions {
+func (r *RegexInspector) Inspect(inspectData InspectData, args InspectorArgs) (*InspectResult, error) {
+	for _, opt := range args.TargetOptions {
 		if _, ok := inspectData.Target[opt.Target]; !ok {
 			continue
 		}

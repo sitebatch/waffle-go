@@ -1,7 +1,6 @@
 package inspector
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/sitebatch/waffle-go/handler"
@@ -32,13 +31,8 @@ func (m *MatchListInspector) Name() InspectorName {
 	return MatchListInspectorName
 }
 
-func (m *MatchListInspector) Inspect(inspectData InspectData, inspectorArgs InspectorArgs) (*InspectResult, error) {
-	args, ok := inspectorArgs.(*MatchListInspectorArgs)
-	if !ok {
-		return nil, errors.New("invalid args, not MatchListInspectorArgs")
-	}
-
-	for _, opt := range args.InspectTargetOptions {
+func (m *MatchListInspector) Inspect(inspectData InspectData, args InspectorArgs) (*InspectResult, error) {
+	for _, opt := range args.TargetOptions {
 		if _, ok := inspectData.Target[opt.Target]; !ok {
 			continue
 		}
@@ -48,7 +42,7 @@ func (m *MatchListInspector) Inspect(inspectData InspectData, inspectorArgs Insp
 		)
 
 		for _, value := range values {
-			for _, listValue := range args.List {
+			for _, listValue := range args.MatchList {
 				re, err := regexp.Compile(listValue)
 				if err != nil {
 					handler.GetErrorHandler().HandleError(err)

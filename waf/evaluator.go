@@ -10,7 +10,7 @@ import (
 )
 
 type RuleEvaluator struct {
-	inspectors map[string]inspector.Inspector
+	inspectors map[inspector.InspectorName]inspector.Inspector
 }
 
 type EvalResult struct {
@@ -19,7 +19,7 @@ type EvalResult struct {
 	InspectResult *inspector.InspectResult
 }
 
-func NewRuleEvaluator(inspectors map[string]inspector.Inspector) *RuleEvaluator {
+func NewRuleEvaluator(inspectors map[inspector.InspectorName]inspector.Inspector) *RuleEvaluator {
 	return &RuleEvaluator{
 		inspectors: inspectors,
 	}
@@ -62,7 +62,7 @@ func (e *RuleEvaluator) Eval(r rule.Rule, data inspector.InspectData) ([]*EvalRe
 }
 
 func (e *RuleEvaluator) runInspector(condition rule.Condition, data inspector.InspectData) (*inspector.InspectResult, error) {
-	i, exists := e.inspectors[condition.Inspector]
+	i, exists := e.inspectors[inspector.InspectorName(condition.Inspector)]
 	if !exists {
 		return nil, errors.New("inspector not found: " + condition.Inspector)
 	}

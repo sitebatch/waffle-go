@@ -175,7 +175,7 @@ func TestRuleEvaluator_Eval(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			evaluator := waf.NewRuleEvaluator(map[string]inspector.Inspector{
+			evaluator := waf.NewRuleEvaluator(map[inspector.InspectorName]inspector.Inspector{
 				"mock": &MockInspector{},
 				"nop":  &NopInspector{},
 			})

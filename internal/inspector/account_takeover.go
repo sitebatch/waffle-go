@@ -17,10 +17,6 @@ func NewAccountTakeoverInspector() Inspector {
 	return &AccountTakeoverInspector{}
 }
 
-func (i *AccountTakeoverInspector) Name() InspectorName {
-	return AccountTakeoverInspectorName
-}
-
 func (i *AccountTakeoverInspector) IsSupportTarget(target InspectTarget) bool {
 	return target == InspectTargetAccountTakeover
 }

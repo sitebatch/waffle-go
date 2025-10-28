@@ -13,10 +13,6 @@ import (
 
 type MockInspector struct{}
 
-func (m *MockInspector) Name() inspector.InspectorName {
-	return inspector.InspectorName("mock")
-}
-
 func (m *MockInspector) IsSupportTarget(target inspector.InspectTarget) bool {
 	return target == inspector.InspectTargetHttpRequestURL
 }
@@ -39,10 +35,6 @@ func (m *MockInspector) Inspect(data inspector.InspectData, args inspector.Inspe
 }
 
 type NopInspector struct{}
-
-func (n *NopInspector) Name() inspector.InspectorName {
-	return inspector.InspectorName("nop")
-}
 
 func (n *NopInspector) IsSupportTarget(target inspector.InspectTarget) bool {
 	return true

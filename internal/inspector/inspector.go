@@ -41,8 +41,6 @@ type InspectTargetOptions struct {
 }
 
 type Inspector interface {
-	// Name returns the name of the inspector
-	Name() InspectorName
 	// Inspect inspects the given data
 	// Returns SuspiciousResult if the inspected data is determined to be an attack, otherwise returns nil
 	// If an error occurs during inspection, returns an error

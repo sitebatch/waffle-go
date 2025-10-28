@@ -22,10 +22,6 @@ func (m *MatchListInspector) IsSupportTarget(target InspectTarget) bool {
 	return true
 }
 
-func (m *MatchListInspector) Name() InspectorName {
-	return MatchListInspectorName
-}
-
 func (m *MatchListInspector) Inspect(inspectData InspectData, args InspectorArgs) (*InspectResult, error) {
 	for _, opt := range args.TargetOptions {
 		if _, ok := inspectData.Target[opt.Target]; !ok {

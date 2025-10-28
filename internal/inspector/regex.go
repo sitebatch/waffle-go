@@ -18,10 +18,6 @@ func NewRegexInspector() Inspector {
 	return &RegexInspector{}
 }
 
-func (r *RegexInspector) Name() InspectorName {
-	return RegexInspectorName
-}
-
 func (r *RegexInspector) IsSupportTarget(target InspectTarget) bool {
 	return true
 }

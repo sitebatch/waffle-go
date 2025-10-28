@@ -18,28 +18,12 @@ type LibInjectionXSSInspectorArgs struct {
 	InspectTargetOptions []InspectTargetOptions
 }
 
-func (r *LibInjectionSQLIInspectorArgs) IsArgOf() string {
-	return string(LibInjectionSQLIInspectorName)
-}
-
-func (r *LibInjectionXSSInspectorArgs) IsArgOf() string {
-	return string(LibInjectionXSSInspectorName)
-}
-
 func NewLibInjectionSQLIInspector() Inspector {
 	return &LibInjectionSQLIInspector{}
 }
 
 func NewLibInjectionXSSInspector() Inspector {
 	return &LibInjectionXSSInspector{}
-}
-
-func (r *LibInjectionSQLIInspector) Name() InspectorName {
-	return LibInjectionSQLIInspectorName
-}
-
-func (r *LibInjectionXSSInspector) Name() InspectorName {
-	return LibInjectionXSSInspectorName
 }
 
 func (r *LibInjectionSQLIInspector) IsSupportTarget(target InspectTarget) bool {

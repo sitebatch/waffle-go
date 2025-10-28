@@ -7,16 +7,8 @@ import (
 type SSRFInspector struct{}
 type SSRFInspectorArgs struct{}
 
-func (a *SSRFInspectorArgs) IsArgOf() string {
-	return string(SSRFInspectorName)
-}
-
 func NewSSRFInspector() Inspector {
 	return &SSRFInspector{}
-}
-
-func (i *SSRFInspector) Name() InspectorName {
-	return SSRFInspectorName
 }
 
 func (i *SSRFInspector) IsSupportTarget(target InspectTarget) bool {

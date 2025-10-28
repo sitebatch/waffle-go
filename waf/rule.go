@@ -72,10 +72,16 @@ func (e *RuleEvaluator) runInspector(condition rule.Condition, data inspector.In
 
 func NewInspectorArgsFromCondition(condition rule.Condition) inspector.InspectorArgs {
 	return inspector.InspectorArgs{
-		TargetOptions:           toInspectTargetOptions(condition.InspectTarget),
-		Regex:                   condition.Regex,
-		MatchList:               condition.MatchList,
-		LoginRateLimitPerSecond: rate.Limit(condition.Threshold),
+		TargetOptions: toInspectTargetOptions(condition.InspectTarget),
+		RegexInspectorArgs: inspector.RegexInspectorArgs{
+			Regex: condition.Regex,
+		},
+		MatchListInspectorArgs: inspector.MatchListInspectorArgs{
+			List: condition.MatchList,
+		},
+		AccountTakeoverInspectorArgs: inspector.AccountTakeoverInspectorArgs{
+			LoginRateLimitPerSecond: rate.Limit(condition.Threshold),
+		},
 	}
 }
 

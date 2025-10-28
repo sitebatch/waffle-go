@@ -13,10 +13,6 @@ type AccountTakeoverInspectorArgs struct {
 	LoginRateLimitPerSecond rate.Limit
 }
 
-func (a *AccountTakeoverInspectorArgs) IsArgOf() string {
-	return string(AccountTakeoverInspectorName)
-}
-
 func NewAccountTakeoverInspector() Inspector {
 	return &AccountTakeoverInspector{}
 }
@@ -42,7 +38,7 @@ func (i *AccountTakeoverInspector) Inspect(inspectData InspectData, args Inspect
 		return nil, nil
 	}
 
-	if err := account_takeover.IsLimit(clientIP[0], userID[0], args.LoginRateLimitPerSecond); err != nil {
+	if err := account_takeover.IsLimit(clientIP[0], userID[0], args.AccountTakeoverInspectorArgs.LoginRateLimitPerSecond); err != nil {
 		return &InspectResult{
 			Target:  InspectTargetAccountTakeover,
 			Payload: fmt.Sprintf("client_ip: %s, user_id: %s", clientIP[0], userID[0]),

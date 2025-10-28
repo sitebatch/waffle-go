@@ -1,7 +1,5 @@
 package inspector
 
-import "golang.org/x/time/rate"
-
 type InspectorName string
 
 var (
@@ -31,10 +29,10 @@ func NewInspector() map[string]Inspector {
 type InspectorArgs struct {
 	TargetOptions []InspectTargetOptions
 
-	Regex     string
-	MatchList []string
+	RegexInspectorArgs     RegexInspectorArgs
+	MatchListInspectorArgs MatchListInspectorArgs
 
-	LoginRateLimitPerSecond rate.Limit
+	AccountTakeoverInspectorArgs AccountTakeoverInspectorArgs
 }
 
 type InspectTargetOptions struct {

@@ -37,7 +37,9 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 					},
 				},
 				inspectorArgs: inspector.InspectorArgs{
-					LoginRateLimitPerSecond: rate.Limit(10),
+					AccountTakeoverInspectorArgs: inspector.AccountTakeoverInspectorArgs{
+						LoginRateLimitPerSecond: rate.Limit(10),
+					},
 				},
 			},
 			randomizeTo: "user_id",
@@ -57,7 +59,9 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 					},
 				},
 				inspectorArgs: inspector.InspectorArgs{
-					LoginRateLimitPerSecond: rate.Limit(10),
+					AccountTakeoverInspectorArgs: inspector.AccountTakeoverInspectorArgs{
+						LoginRateLimitPerSecond: rate.Limit(10),
+					},
 				},
 			},
 			randomizeTo: "client_ip",
@@ -77,7 +81,9 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 					},
 				},
 				inspectorArgs: inspector.InspectorArgs{
-					LoginRateLimitPerSecond: rate.Limit(10),
+					AccountTakeoverInspectorArgs: inspector.AccountTakeoverInspectorArgs{
+						LoginRateLimitPerSecond: rate.Limit(10),
+					},
 				},
 			},
 			randomizeTo: "user_id",
@@ -97,7 +103,9 @@ func TestAccountTakeoverInspector_Inspect(t *testing.T) {
 					},
 				},
 				inspectorArgs: inspector.InspectorArgs{
-					LoginRateLimitPerSecond: rate.Limit(10),
+					AccountTakeoverInspectorArgs: inspector.AccountTakeoverInspectorArgs{
+						LoginRateLimitPerSecond: rate.Limit(10),
+					},
 				},
 			},
 			randomizeTo: "client_ip",

@@ -31,7 +31,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					},
 				},
 				inspectorArgs: inspector.InspectorArgs{
-					Regex: "^http://malicious.com$",
+					RegexInspectorArgs: inspector.RegexInspectorArgs{
+						Regex: "^http://malicious.com$",
+					},
 					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestURL,
@@ -50,7 +52,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					},
 				},
 				inspectorArgs: inspector.InspectorArgs{
-					Regex: "^http://malicious.com$",
+					RegexInspectorArgs: inspector.RegexInspectorArgs{
+						Regex: "^http://malicious.com$",
+					},
 					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestURL,
@@ -69,7 +73,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					},
 				},
 				inspectorArgs: inspector.InspectorArgs{
-					Regex: "^http://malicious.com$",
+					RegexInspectorArgs: inspector.RegexInspectorArgs{
+						Regex: "^http://malicious.com$",
+					},
 					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestURL,
@@ -88,7 +94,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					},
 				},
 				inspectorArgs: inspector.InspectorArgs{
-					Regex: "^http://malicious.com$",
+					RegexInspectorArgs: inspector.RegexInspectorArgs{
+						Regex: "^http://malicious.com$",
+					},
 					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestPath,
@@ -112,7 +120,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					},
 				},
 				inspectorArgs: inspector.InspectorArgs{
-					Regex: "^Firefox$",
+					RegexInspectorArgs: inspector.RegexInspectorArgs{
+						Regex: "^Firefox$",
+					},
 					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestHeader,
@@ -134,7 +144,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					},
 				},
 				inspectorArgs: inspector.InspectorArgs{
-					Regex: "^Edge$",
+					RegexInspectorArgs: inspector.RegexInspectorArgs{
+						Regex: "^Edge$",
+					},
 					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestHeader,
@@ -155,7 +167,9 @@ func TestRegexInspector_Inspect(t *testing.T) {
 					},
 				},
 				inspectorArgs: inspector.InspectorArgs{
-					Regex: "^example.com$",
+					RegexInspectorArgs: inspector.RegexInspectorArgs{
+						Regex: "^example.com$",
+					},
 					TargetOptions: []inspector.InspectTargetOptions{
 						{
 							Target: inspector.InspectTargetHttpRequestHeader,

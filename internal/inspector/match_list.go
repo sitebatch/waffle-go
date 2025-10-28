@@ -11,12 +11,7 @@ import (
 type MatchListInspector struct{}
 
 type MatchListInspectorArgs struct {
-	List                 []string
-	InspectTargetOptions []InspectTargetOptions
-}
-
-func (m *MatchListInspectorArgs) IsArgOf() string {
-	return string(MatchListInspectorName)
+	List []string
 }
 
 func NewMatchListInspector() Inspector {
@@ -42,7 +37,7 @@ func (m *MatchListInspector) Inspect(inspectData InspectData, args InspectorArgs
 		)
 
 		for _, value := range values {
-			for _, listValue := range args.MatchList {
+			for _, listValue := range args.MatchListInspectorArgs.List {
 				re, err := regexp.Compile(listValue)
 				if err != nil {
 					handler.GetErrorHandler().HandleError(err)

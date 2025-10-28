@@ -267,7 +267,9 @@ func TestNewInspectorArgsFromCondition(t *testing.T) {
 				TargetOptions: []inspector.InspectTargetOptions{
 					{Target: "http.request.header", Params: []string{"User-Agent"}},
 				},
-				Regex: "^Bot$",
+				RegexInspectorArgs: inspector.RegexInspectorArgs{
+					Regex: "^Bot$",
+				},
 			},
 		},
 		"with MatchList": {
@@ -281,7 +283,9 @@ func TestNewInspectorArgsFromCondition(t *testing.T) {
 				TargetOptions: []inspector.InspectTargetOptions{
 					{Target: "http.request.query"},
 				},
-				MatchList: []string{"/etc/password"},
+				MatchListInspectorArgs: inspector.MatchListInspectorArgs{
+					List: []string{"/etc/password"},
+				},
 			},
 		},
 		"with Threshold": {
@@ -295,7 +299,9 @@ func TestNewInspectorArgsFromCondition(t *testing.T) {
 				TargetOptions: []inspector.InspectTargetOptions{
 					{Target: "http.request.query"},
 				},
-				LoginRateLimitPerSecond: rate.Limit(10),
+				AccountTakeoverInspectorArgs: inspector.AccountTakeoverInspectorArgs{
+					LoginRateLimitPerSecond: rate.Limit(10),
+				},
 			},
 		},
 	}

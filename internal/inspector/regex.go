@@ -11,12 +11,7 @@ import (
 
 type RegexInspector struct{}
 type RegexInspectorArgs struct {
-	Regex                string
-	InspectTargetOptions []InspectTargetOptions
-}
-
-func (r *RegexInspectorArgs) IsArgOf() string {
-	return string(RegexInspectorName)
+	Regex string
 }
 
 func NewRegexInspector() Inspector {
@@ -42,7 +37,7 @@ func (r *RegexInspector) Inspect(inspectData InspectData, args InspectorArgs) (*
 		)
 
 		for _, value := range values {
-			matched, err := regexp.MatchString(args.Regex, value)
+			matched, err := regexp.MatchString(args.RegexInspectorArgs.Regex, value)
 			if err != nil {
 				handler.GetErrorHandler().HandleError(err)
 				continue
@@ -52,7 +47,7 @@ func (r *RegexInspector) Inspect(inspectData InspectData, args InspectorArgs) (*
 				return &InspectResult{
 					Target:  opt.Target,
 					Payload: value,
-					Message: fmt.Sprintf("Suspicious pattern detected: '%s' matches regex '%s'", value, args.Regex),
+					Message: fmt.Sprintf("Suspicious pattern detected: '%s' matches regex '%s'", value, args.RegexInspectorArgs.Regex),
 				}, nil
 			}
 		}

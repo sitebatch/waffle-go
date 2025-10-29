@@ -9,12 +9,13 @@ import (
 	"github.com/sitebatch/waffle-go/internal/emitter/sql"
 	"github.com/sitebatch/waffle-go/waf"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProtectSQLOperation(t *testing.T) {
 	t.Parallel()
 
-	waffle.Start()
+	require.NoError(t, waffle.Start())
 
 	testCases := map[string]struct {
 		ctx       context.Context
@@ -36,11 +37,14 @@ func TestProtectSQLOperation(t *testing.T) {
 			query:     "SELECT * FROM users",
 			expectErr: false,
 		},
+		"not through http operation and attack request": {
+			ctx:       context.Background(),
+			query:     "SELECT * FROM users WHERE id = '1' OR 1=1--",
+			expectErr: true,
+		},
 	}
 
 	for name, tt := range testCases {
-		tt := tt
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

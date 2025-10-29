@@ -32,7 +32,7 @@ func (r *FileOperationResult) IsBlock() bool {
 func ProtectFileOperation(ctx context.Context, path string) error {
 	parent, _ := operation.FindOperationFromContext(ctx)
 	if parent == nil {
-		return nil
+		parent = operation.NewOperation(nil)
 	}
 
 	var wafop *waf.WafOperation

@@ -37,7 +37,7 @@ func IsSuspiciousLoginActivity(
 ) error {
 	parent, _ := operation.FindOperationFromContext(ctx)
 	if parent == nil {
-		return nil
+		parent = operation.NewOperation(nil)
 	}
 
 	var wafop *waf.WafOperation

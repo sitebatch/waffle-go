@@ -35,8 +35,8 @@ func TestWrapClient(t *testing.T) {
 		},
 		"when not through http operation": {
 			ctx:       context.Background(),
-			url:       "https://example.com",
-			expectErr: false,
+			url:       "http://169.254.169.254",
+			expectErr: true,
 		},
 	}
 

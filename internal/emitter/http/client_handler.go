@@ -44,7 +44,7 @@ var _ http.RoundTripper = &Transport{}
 func ProtectRoundTrip(ctx context.Context, url string) error {
 	parent, _ := operation.FindOperationFromContext(ctx)
 	if parent == nil {
-		return nil
+		parent = operation.NewOperation(nil)
 	}
 
 	var wafop *waf.WafOperation

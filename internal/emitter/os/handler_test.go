@@ -9,12 +9,13 @@ import (
 	"github.com/sitebatch/waffle-go/internal/emitter/os"
 	"github.com/sitebatch/waffle-go/waf"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProtectFileOperation(t *testing.T) {
 	t.Parallel()
 
-	waffle.Start()
+	require.NoError(t, waffle.Start())
 
 	testCases := map[string]struct {
 		ctx       context.Context
@@ -35,6 +36,11 @@ func TestProtectFileOperation(t *testing.T) {
 			ctx:       context.Background(),
 			filePath:  "file.txt",
 			expectErr: false,
+		},
+		"not through http operation and attack request": {
+			ctx:       context.Background(),
+			filePath:  "/var/run/secrets/kubernetes.io/serviceaccount/token",
+			expectErr: true,
 		},
 	}
 

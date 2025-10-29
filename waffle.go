@@ -46,6 +46,7 @@ func WithRule(ruleJSON []byte) Options {
 	}
 }
 
+// Start initializes and starts Waffle with the provided options.
 func Start(opts ...Options) error {
 	response.InitResponseWriterFeature()
 
@@ -90,6 +91,12 @@ func SetErrorHandler(h handler.ErrorHandler) {
 	handler.SetErrorHandler(h)
 }
 
+// SetExporter sets a exporter of WAF detection event.
+//
+// Waffle can export WAF detection events to any desired location using the provided exporter.
+// By default, Waffle uses a no-operation exporter that does not export any events.
+// You can implement your own exporter by implementing the exporter.EventExporter interface
+// and set it using this function.
 func SetExporter(eventExporter exporter.EventExporter) {
 	exporter.SetExporter(eventExporter)
 }

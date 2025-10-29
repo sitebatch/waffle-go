@@ -15,7 +15,9 @@ type eventExporterProvider struct {
 	ep EventExporter
 }
 
+// EventExporter exports WAF detection events to any desired location.
 type EventExporter interface {
+	// Export transforms and transmits event data to any desired location.
 	Export(ctx context.Context, event waf.ReadOnlyDetectionEvents) error
 }
 

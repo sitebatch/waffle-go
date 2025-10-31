@@ -1,20 +1,77 @@
 # gorm
 
-This package provides a wrapper for GORM protected by Waffle. However, it currently does not provide any functions as there is no need to wrap GORM.
+This package provides integration instructions for using [GORM](https://gorm.io/) with Waffle protection. While GORM itself doesn't require wrapping, you can apply Waffle's SQL injection protection by using the Waffle database driver.
 
-# Usage
+## Installation
 
-To apply Waffle protection to GORM, do the following:
+```bash
+go get github.com/sitebatch/waffle-go/contrib/gorm.io/gorm
+```
+
+## Usage
+
+To apply Waffle protection to GORM applications, use the Waffle database driver with GORM:
 
 ```go
+package main
+
 import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/sitebatch/waffle-go"
 	waffleSql "github.com/sitebatch/waffle-go/contrib/database/sql"
+	"github.com/sitebatch/waffle-go/waf"
+
 	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
-_, err := waffleSql.Register(sqlite.DriverName)
-sqlDB, err := waffleSql.Open(sqlite.DriverName, dsn)
-db, err := gorm.Open(sqlite.New(sqlite.Config{Conn: sqlDB}), &gorm.Config{})
+type Product struct {
+	gorm.Model
+	Code string
+	Name string
+}
 
-result := db.WithContext(ctx).Where(fmt.Sprintf("code = '%s'", "D42') OR 1=1--")).First(&product)
+func main() {
+	// Register Waffle driver
+	driverName, err := waffleSql.Register(sqlite.DriverName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Open database connection using Waffle's driver
+	sqlDB, err := waffleSql.Open(driverName, "file:test.db?cache=shared&mode=memory")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db, err := gorm.Open(sqlite.New(sqlite.Config{Conn: sqlDB}), &gorm.Config{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db.AutoMigrate(&Product{})
+
+	// Start Waffle
+	if err := waffle.Start(); err != nil {
+		log.Fatal(err)
+	}
+
+	ctx := context.Background()
+	var product Product
+
+	// Execute queries - Waffle will prevent SQL injection
+	maliciousCode := "D42') OR 1=1--"
+	query := fmt.Sprintf("code = '%s'", maliciousCode)
+	result := db.WithContext(ctx).Where(query).First(&product)
+
+	if result.Error != nil {
+		if waf.IsSecurityBlockingError(result.Error) {
+			// Handle blocked query
+			log.Printf("Blocked SQL injection attempt: %v", result.Error)
+		}
+	}
+}
 ```

@@ -2,7 +2,13 @@
 
 This package provides a Waffle middleware for [Echo](https://echo.labstack.com/).
 
-If you are using Echo, you can apply protection by Waffle using the `WafMiddleware` provided by this package.
+If you are using Echo web framework, you can apply WAF protection using the `WafMiddleware` provided by this package.
+
+## Installation
+
+```bash
+go get github.com/sitebatch/waffle-go/contrib/labstack/echo
+```
 
 ## Usage
 
@@ -10,17 +16,24 @@ If you are using Echo, you can apply protection by Waffle using the `WafMiddlewa
 package main
 
 import (
+	"net/http"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sitebatch/waffle-go"
 	waffleEcho "github.com/sitebatch/waffle-go/contrib/labstack/echo"
 )
 
-e := echo.New()
-e.Use(waffleEcho.WafMiddleware())
-e.Use(middleware.Recover())
+func main() {
+	e := echo.New()
 
-waffle.Start()
+	// Apply Waffle WAF middleware
+	e.Use(waffleEcho.WafMiddleware())
 
-e.Logger.Fatal(e.Start(":1323"))
+	// Start Waffle
+	if err := waffle.Start(); err != nil {
+		e.Logger.Fatal(err)
+	}
+
+	e.Logger.Fatal(e.Start(":1323"))
+}
 ```

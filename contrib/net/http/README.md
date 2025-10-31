@@ -1,24 +1,39 @@
 # net/http
 
-This package provides a Waffle middleware and HTTP Client for the Go standard library's [net/http](https://pkg.go.dev/net/http).
+This package provides Waffle middleware and HTTP client wrapper for the Go standard library's [net/http](https://pkg.go.dev/net/http).
 
-If your application uses `net/http`, you can apply Waffle protection using this package.  
-Additionally, if you are using an HTTP client with `net/http`, you can protect against threats such as SSRF by using the wrapper functions provided by this package.
+- **HTTP Server Protection**: `WafMiddleware` that automatically analyzes incoming requests for malicious patterns
+- **HTTP Client Protection**: `WrapClient` that prevents outbound requests to dangerous destinations (SSRF protection)
+
+## Installation
+
+```bash
+go get github.com/sitebatch/waffle-go/contrib/net/http
+```
 
 ## Usage
 
+### HTTP Server Protection
+
 ```go
+package main
+
 import (
-   	"github.com/sitebatch/waffle-go"
+	"net/http"
+	"github.com/sitebatch/waffle-go"
 	waffleHttp "github.com/sitebatch/waffle-go/contrib/net/http"
-	waffleOs "github.com/sitebatch/waffle-go/contrib/os"
 )
 
 func main() {
-   	mux := http.NewServeMux()
+	mux := http.NewServeMux()
+
+	// Apply Waffle WAF middleware
 	handler := waffleHttp.WafMiddleware(mux)
 
-	waffle.Start()
+	// Start Waffle
+	if err := waffle.Start(); err != nil {
+		panic(err)
+	}
 
 	srv := &http.Server{
 		Addr:    ":8000",
@@ -29,16 +44,44 @@ func main() {
 }
 ```
 
-### HTTP Client
+### HTTP Client Protection (SSRF Prevention)
 
 ```go
+package main
+
 import (
-    "net/http"
+	"context"
+	"fmt"
+	"net/http"
 
-   	"github.com/sitebatch/waffle-go"
+	"github.com/sitebatch/waffle-go"
 	waffleHttp "github.com/sitebatch/waffle-go/contrib/net/http"
-}
+	"github.com/sitebatch/waffle-go/waf"
+)
 
-c := waffleHttp.WrapClient(http.DefaultClient)
-req, _ := stdhttp.NewRequestWithContext(ctx, "GET", url, nil)
+func main() {
+	// Start Waffle
+	if err := waffle.Start(); err != nil {
+		panic(err)
+	}
+
+	// Wrap HTTP client for SSRF protection
+	client := waffleHttp.WrapClient(http.DefaultClient)
+
+	// Protected request - Waffle will prevents SSRF attempts
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, "GET", "http://169.254.169.254/", nil)
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		if waf.IsSecurityBlockingError(err) {
+			fmt.Printf("Request blocked by Waffle: %v\n", err)
+		}
+		return
+	}
+	defer resp.Body.Close()
+}
 ```

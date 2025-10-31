@@ -2,7 +2,13 @@
 
 This package provides a Waffle middleware for [gin](https://gin-gonic.com/).
 
-If you are using gin, you can apply protection by Waffle using the `WafMiddleware` provided by this package.
+If you are using Gin web framework, you can apply WAF protection using the `WafMiddleware` provided by this package.
+
+## Installation
+
+```bash
+go get github.com/sitebatch/waffle-go/contrib/gin-gonic/gin
+```
 
 ## Usage
 
@@ -15,10 +21,17 @@ import (
 	ginWaf "github.com/sitebatch/waffle-go/contrib/gin-gonic/gin"
 )
 
-r := gin.Default()
-r.Use(ginWaf.WafMiddleware())
+func main() {
+	r := gin.Default()
 
-waffle.Start()
+	// Apply Waffle WAF middleware
+	r.Use(ginWaf.WafMiddleware())
 
-r.Run(":8000")
+	// Start Waffle
+	if err := waffle.Start(); err != nil {
+		panic(err)
+	}
+
+	r.Run(":8000")
+}
 ```

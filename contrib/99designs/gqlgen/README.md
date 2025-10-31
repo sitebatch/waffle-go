@@ -2,40 +2,59 @@
 
 This package provides a Waffle middleware for [gqlgen](https://gqlgen.com/).
 
-If you are using gqlgen, you can apply protection by Waffle using the `WafMiddleware` provided by this package.
+If you are using gqlgen for GraphQL server, you can apply WAF protection using the `WafMiddleware` provided by this package.
+
+## Installation
+
+```bash
+go get github.com/sitebatch/waffle-go/contrib/99designs/gqlgen
+```
 
 ## Usage
 
 ```go
+package main
+
 import (
+	"net/http"
+	"github.com/99designs/gqlgen/graphql/handler"
+
+	"github.com/sitebatch/waffle-go"
 	"github.com/sitebatch/waffle-go/contrib/99designs/gqlgen"
 	waffleHttp "github.com/sitebatch/waffle-go/contrib/net/http"
 )
 
-mux := http.NewServeMux()
+func main() {
+	mux := http.NewServeMux()
 
-gqlHandler := func() http.HandlerFunc {
-	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
-	srv.AddTransport(transport.Options{})
-	srv.AddTransport(transport.GET{})
-	srv.AddTransport(transport.POST{})
+	gqlHandler := func() http.HandlerFunc {
+		srv := handler.New(graph.NewExecutableSchema(graph.Config{
+			Resolvers: &graph.Resolver{},
+		}))
 
-	srv.SetQueryCache(lru.New[*ast.QueryDocument](1000))
+		// Apply Waffle WAF middleware for GraphQL
+		srv.Use(gqlgen.WafMiddleware{})
 
-    // Apply WAF middleware for gqlgen
-	srv.Use(gqlgen.WafMiddleware{})
-
-	srv.Use(extension.Introspection{})
-	srv.Use(extension.AutomaticPersistedQuery{
-		Cache: lru.New[string](100),
-	})
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		srv.ServeHTTP(w, r)
+		return func(w http.ResponseWriter, r *http.Request) {
+			srv.ServeHTTP(w, r)
+		}
 	}
-}
 
-mux.Handle("/query", gqlHandler())
-// Apply WAF middleware for the HTTP Server
-handler := waffleHttp.WafMiddleware(mux)
+	mux.Handle("/query", gqlHandler())
+
+	// Apply WAF middleware for the HTTP server
+	handler := waffleHttp.WafMiddleware(mux)
+
+	// Start Waffle
+	if err := waffle.Start(); err != nil {
+		panic(err)
+	}
+
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: handler,
+	}
+
+	srv.ListenAndServe()
+}
 ```

@@ -1,20 +1,50 @@
 # os
 
-This package provides a wrapper for [`os`](https://pkg.go.dev/os) protected by Waffle.  
-It provides functions that wrap `os.ReadFile` and `os.WriteFile` to prevent directory traversal and access to sensitive files.
+This package provides a wrapper around the Go standard library's [`os`](https://pkg.go.dev/os) package, enhanced with Waffle's security features.  
+It includes functions that wrap `os.ReadFile` and `os.OpenFile`, featuring protection mechanisms to prevent unauthorized access to sensitive files through directory traversal attacks, LFI, and other vulnerabilities.
 
-# Usage
+## Installation
 
-When accessing a file, use the Waffle's file functions instead of `os`.
+```bash
+go get github.com/sitebatch/waffle-go/contrib/os
+```
+
+## Usage
+
+Replaces standard `os` module file operations with functions provided by this package:
 
 ```go
+package main
+
 import (
-    waffleOs "github.com/sitebatch/waffle-go/contrib/os"
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/sitebatch/waffle-go"
+	waffleOs "github.com/sitebatch/waffle-go/contrib/os"
+	"github.com/sitebatch/waffle-go/waf"
 )
 
-// ProtectReadFile wraps os.ReadFile
-data, err := waffleOs.ProtectReadFile(ctx, "<filename>")
+func main() {
+	// Start Waffle
+	if err := waffle.Start(); err != nil {
+		log.Fatal(err)
+	}
 
-// ProtectOpenFile wraps os.OpenFile
-f, err := waffleOs.ProtectOpenFile("notes.txt", os.O_RDWR|os.O_CREATE, 0644)
+	ctx := context.Background()
+
+	// Protected file reading - prevents sensitive file access
+	filename := "../../../../env"
+	data, err := waffleOs.ProtectReadFile(ctx, filename)
+	if err != nil {
+		if waf.IsSecurityBlockingError(err) {
+			fmt.Printf("file read blocked by Waffle: %v\n", err)
+			return
+		}
+		return
+	}
+
+	log.Printf("File content: %s", data)
+}
 ```

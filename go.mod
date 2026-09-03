@@ -6,7 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.68
 	github.com/ebitengine/purego v0.9.0
 	github.com/gin-gonic/gin v1.10.0
-	github.com/go-logr/logr v1.4.3
+	github.com/go-logr/logr v1.4.4
 	github.com/go-logr/stdr v1.2.2
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0

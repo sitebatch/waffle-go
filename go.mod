@@ -1,10 +1,10 @@
 module github.com/sitebatch/waffle-go
 
-go 1.23.4
+go 1.25.0
 
 require (
 	github.com/99designs/gqlgen v0.17.68
-	github.com/ebitengine/purego v0.9.0
+	github.com/ebitengine/purego v0.11.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-logr/logr v1.4.3
 	github.com/go-logr/stdr v1.2.2
